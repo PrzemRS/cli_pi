@@ -12,6 +12,9 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.styles import Style
 
+import wgl_parser
+from wgl_parser import *
+
 
 #####################################################################################################################
 #                                                                                                                   #
@@ -39,7 +42,7 @@ def helpFunction(*args):
         return 1
     
     elif len(args) == 2:
-        # Get dictionary fr selected command. If doesn't exist, provide error
+        # Get daictionary fr selected command. If doesn't exist, provide error
         selected_command = []
         for d in command_list:
             if d['commandName'] == args[1]:
@@ -61,11 +64,11 @@ def helpFunction(*args):
 
 ################################################################
 #
-# Read patterns
-#   Args:   [1] - path to wgl pattern; mandatory argument
+# PrintVar
+#   Args:   [1] - Variable to print; mandatory argument
 #
 ################################################################
-def readPatternFunction(*args):
+def printVarFunction(*args):
     command_dictionary = args[0]
     command_name = command_dictionary["commandName"]
     
@@ -73,13 +76,55 @@ def readPatternFunction(*args):
     if len(args) != 2:
         print(error_dict["syntaxError"], command_name)
         return 1
+    else:
+        print(args[1])
+        return 0
+################################################################
 
+################################################################
+#
+# Read patterns
+#   Args:   [1] - path to wgl pattern; mandatory argument
+#
+################################################################
+def readPatternFunction(*args):
+    command_dictionary = args[0]
+    command_name = command_dictionary["commandName"]
+    # Check for parameters
+    if len(args) != 2:
+        print(error_dict["syntaxError"], command_name)
+        return 1
     else:
         # Read pattern here
-        print("Hello from function readPatternFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
-        return 0
+        if os.path.isfile(args[1]):
+            globals()['PIOMAP_list'],globals()['VECTOR_list']=wgl_parser.parse_wgl(args[1])
+            return 0
+        else:
+            print('File ',args[1], 'not found!')
+            return 1
+################################################################
+
+################################################################
+#
+# Read PIOMAP
+#   Args:   [1] - path to wgl pattern with PIOMAP; mandatory argument
+#
+################################################################
+def readPIOMAPFunction(*args):
+    command_dictionary = args[0]
+    command_name = command_dictionary["commandName"]
+    # Check for parameters
+    if len(args) != 2:
+        print(error_dict["syntaxError"], command_name)
+        return 1
+    else:
+        # Read pattern here
+        if os.path.isfile(args[1]):
+            globals()['PIOMAP_list']=wgl_parser.parse_wgl_header(args[1])
+            return 0
+        else:
+            print('File ',args[1], 'not found!')
+            return 1
 ################################################################
 
 ################################################################
@@ -93,21 +138,22 @@ def executePatternFunction(*args):
     command_dictionary = args[0]
     command_name = command_dictionary["commandName"]
     # Check for parameters
-    if len(args) == 3 and args[1] == "-vector":
-        # Parse 3rd argument and execute selected 
-        print("Hello from function executePatternFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
+    if globals()['VECTOR_list']=='':
+        print('Use read_pattern to read wgl pattern first.')
+        return 1
+    if len(args) == 4 and args[1] == "-vector":
+        wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[3])    
         return 0
-
+    elif len(args) == 3   and args[1] == "-vector":
+        wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[2])    
+        return 0    
     elif len(args) == 2 and args[1] == "-all":
         # Execute all pattern vectors
-        print("Hello from function executePatternFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
+        wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],0,len(globals()['VECTOR_list']))
         return 0
 
     else:
+        print(len(args))
         print(error_dict["syntaxError"], command_name)
         return 1
 ################################################################
@@ -120,15 +166,15 @@ def executePatternFunction(*args):
 def reportPinmapFunction(*args):
     command_dictionary = args[0]
     command_name = command_dictionary["commandName"]
+    if globals()['PIOMAP_list']=='':
+        print('Use read_pattern to read wgl pattern first.')  
+        return 1
     # Check for parameters
     if len(args) > 1:
         print(error_dict["syntaxError"], command_name)
         return 1
     else:
-        # Print pinmap
-        print("Hello from function reportPinmapFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
+        wgl_parser.Show_Mapping(globals()['PIOMAP_list'])
         return 0
 ################################################################
 
@@ -141,14 +187,14 @@ def reportPatternFunction(*args):
     command_dictionary = args[0]
     command_name = command_dictionary["commandName"]
     # Check for parameters
+    if globals()['VECTOR_list']=='':
+        print('Use read_pattern to read wgl pattern first.')  
+        return 1
     if len(args) > 1:
         print(error_dict["syntaxError"], command_name)
         return 1
     else:
-        # report_pattern
-        print("Hello from function reportPatternFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
+        print('Pattern in memory has',len(globals()['VECTOR_list']),'vectors')
         return 0
 ################################################################
 
@@ -162,14 +208,15 @@ def reportVectorFunction(*args):
     command_dictionary = args[0]
     command_name = command_dictionary["commandName"]
     # Check for parameters
+    if globals()['VECTOR_list']=='':
+        print('Use read_pattern to read wgl pattern first.')  
+        return 1
     if len(args) != 2:
         print(error_dict["syntaxError"], command_name)
         return 1
     else:
-        # report vector details
-        print("Hello from function reportVectorFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
+        print('Vector', args[1], ':')
+        report_vector(globals()['VECTOR_list'][int(args[1])],globals()['PIOMAP_list'])
         return 0
 ################################################################
 
@@ -246,15 +293,16 @@ def applyUnloadFunction(*args):
 def forcePiFunction(*args):
     command_dictionary = args[0]
     command_name = command_dictionary["commandName"]
+    if globals()['PIOMAP_list']=='':
+        print('Use read_pattern to read wgl pattern first.')  
+        return 1
     # Check for parameters
     if len(args) != 2:
         print(error_dict["syntaxError"], command_name)
         return 1
     else:
         # Force PI
-        print("Hello from function forcePiFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
+        force_Pi(globals()['PIOMAP_list'],args[1])
         return 0
 ################################################################
 
@@ -266,15 +314,16 @@ def forcePiFunction(*args):
 def measurePoFunction(*args):
     command_dictionary = args[0]
     command_name = command_dictionary["commandName"]
+    if globals()['PIOMAP_list']=='':
+        print('Use read_pattern to read wgl pattern first.')  
+        return 1
     # Check for parameters
     if len(args) != 1:
         print(error_dict["syntaxError"], command_name)
         return 1
     else:
         # Measure PO
-        print("Hello from function measurePoFunction")
-        print("I was called with", len(args), "arguments:", args)
-        print("Implement me here :)")
+        measure_po(globals()['PIOMAP_list'])
         return 0
 ################################################################
 
@@ -462,7 +511,9 @@ def exitFunction(*args):
 
 command_list = [
     {"commandName": "help",             "commandHelp": "This comand prints help and command list or help for provided command\n  Syntax: help [command_name]",                                                                      "commandFunction": helpFunction             },
+    {"commandName": "printVar",         "commandHelp": "Use this command to print Variable.\n  Syntax printVar <variable>",                                                                                                         "commandFunction": printVarFunction         },
     {"commandName": "read_pattern",     "commandHelp": "Use this command to read wgl pattern.\n  Syntax read_pattern <pattern_path>",                                                                                               "commandFunction": readPatternFunction      },
+    {"commandName": "read_piomap",      "commandHelp": "Use this command to read wgl header with PIOMAP.\n  Syntax read_piomap <pattern_path>",                                                                                     "commandFunction": readPIOMAPFunction       },
     {"commandName": "execute_pattern",  "commandHelp": "Use This command to execute pattern. Available options - run all patterns or vector range.\n  Syntax: execute_pattern -vector <range> | -all",                              "commandFunction": executePatternFunction   },
     {"commandName": "report_pinmap",    "commandHelp": "Use this command to report pinmap\n  Syntax: report_pinmap",                                                                                                                "commandFunction": reportPinmapFunction     },
     {"commandName": "report_pattern",   "commandHelp": "Use this command to report pattern details\n  Syntax: report_pattern",                                                                                                      "commandFunction": reportPatternFunction    },
@@ -554,6 +605,10 @@ def print_banner():
 def main():
     print_banner()
     global dofile_mode
+    global VECTOR_list
+    global PIOMAP_list
+    VECTOR_list=''
+    PIOMAP_list=''
     session = PromptSession(completer=command_completer, complete_while_typing=True, history=FileHistory('.myhistory'), message='ATE> ')
     while True:
         try:

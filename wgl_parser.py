@@ -1,12 +1,14 @@
 import re
 import time
 import sys
-from tabulate import tabulate	
+from tabulate import tabulate  
+import gpio 
 
 def parse_wgl_header(file):
 	PIOMAP_list=[]
 	line = file.readline()
-	GPIO_list=['GPIO0', 'GPIO1', 'GPIO2', 'GPIO3', 'GPIO4', 'GPIO5', 'GPIO6', 'GPIO7', 'GPIO8', 'GPIO9', 'GPIO10']
+	#GPIO_list=['GPIO0', 'GPIO1', 'GPIO2', 'GPIO3', 'GPIO4', 'GPIO5', 'GPIO6', 'GPIO7', 'GPIO8', 'GPIO9', 'GPIO10']
+	GPIO_list=[40, 38, 37, 36, 35, 33, 32 ,31, 29, 28]
 	GPIO_idx=0
 	while line:
 		signal_line = re.search('^\s+"(\w+)" : (input|output)(?: initialp\[(\w+)\])?;', line)
@@ -19,7 +21,7 @@ def parse_wgl_header(file):
 			else:
 				signal_init_val='X'
 
-			#PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx], 'init_val' : signal_init_val, 'timeplate' : ''})			
+			#PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx], 'init_val' : signal_init_val, 'timeplate' : ''})          
 			PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx], 'init_val' : signal_init_val})
 			GPIO_idx = GPIO_idx + 1
 			if  GPIO_idx >= len(GPIO_list):
@@ -41,9 +43,10 @@ def parse_wgl_header(file):
 
 		break_line = re.search('pattern Chain_Scan_test\(',line)
 		if break_line:
+			gpio.setup(PIOMAP_list)
 			return PIOMAP_list
 
-		line = file.readline()	
+		line = file.readline()  
 
 def parse_wgl_pattern(file,PIOMAP_list):
 	line = file.readline()
@@ -61,16 +64,16 @@ def parse_wgl_pattern(file,PIOMAP_list):
 				elif port['direction'] == 'input':
 					Vector_inputs.append({'port' : port['port_name'], 'value' : Vector[index]})
 				elif port['direction'] == 'output':
-					Vector_outputs.append({'port' : port['port_name'], 'value' : Vector[index]})			
+					Vector_outputs.append({'port' : port['port_name'], 'value' : Vector[index]})            
 			VECTOR_list.append({'clocks': Vector_clocks,'inputs' : Vector_inputs, 'outputs' : Vector_outputs})
-		line = file.readline()		
+		line = file.readline()      
 	return VECTOR_list
 
 def get_GPIO_from_port_name(port_name,PIOMAP_list):
 	for port in PIOMAP_list:
 		if port['port_name']==port_name:
 			return port['GPIO']
-	return 1		
+	return 1        
 
 def get_direction_from_port_name(port_name,PIOMAP_list):
 	for port in PIOMAP_list:
@@ -83,6 +86,7 @@ def execute_vector(vector,PIOMAP_list):
 	for idx,in_port in enumerate(vector['inputs']):
 			GPIO=get_GPIO_from_port_name(in_port['port'], PIOMAP_list)
 			print('Driving', in_port['port'], GPIO, in_port['value'])
+			gpio.set_pin_value(in_port['port'], in_port['value'])
 	#Capture Outputs
 	for idx,out_port in enumerate(vector['outputs']):
 		if out_port['value'] != 'X':
@@ -121,7 +125,7 @@ def report_vector(vector,PIOMAP_list):
 			direction=get_direction_from_port_name(clock_port['port'], PIOMAP_list)
 			vector_data.append([clock_port['port'],  direction, GPIO, clock_port['value']])
 
-	print(tabulate(vector_data,headers=['Port\nName', 'Type', 'GPIO', 'Value'],tablefmt='orgtbl'))	
+	print(tabulate(vector_data,headers=['Port\nName', 'Type', 'GPIO', 'Value'],tablefmt='orgtbl'))  
 
 
 def force_Pi(PIOMAP_list,input_vector):
@@ -160,16 +164,21 @@ def parse_wgl(filepath):
 	PIOMAP_list=parse_wgl_header(file)
 	VECTOR_list=parse_wgl_pattern(file, PIOMAP_list)
 	return PIOMAP_list,VECTOR_list
+	
+def parse_wgl_piomap(filepath):
+	file=open(filepath, 'r')
+	PIOMAP_list=parse_wgl_header(file)
+	return PIOMAP_list
 
 #if __name__ == '__main__':
 
-#	PIOMAP_list,VECTOR_list=parse_wgl('pattern.wgl')
-#	Show_Mapping(PIOMAP_list)
+#   PIOMAP_list,VECTOR_list=parse_wgl('pattern.wgl')
+#   Show_Mapping(PIOMAP_list)
 
 	#execute_pattern(VECTOR_list,0,len(VECTOR_list))
-#	execute_pattern(VECTOR_list,0,3)
+#   execute_pattern(VECTOR_list,0,3)
 	#for Vector in VECTOR_list:
-	#	print(Vector)	
+	#   print(Vector)   
 	##Show_Mapping(Pattern_dict,PIOMAP_list)
 	#input("Press Enter to continue...")
 	#Pattern=[]
@@ -180,10 +189,10 @@ def parse_wgl(filepath):
 
 	#print(Pattern)
 #
-#	#print(Pattern[0][0])
+#   #print(Pattern[0][0])
 	#print(Pattern[0][1])
 	#for transcript_line in Pattern_transcript:
-	#	print(transcript_line, end='')
+	#   print(transcript_line, end='')
 	
 
 

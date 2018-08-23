@@ -5,7 +5,7 @@ def setup(PIOMAP_list):
 	# GPIO.cleanup()
 	# GPIO.setmode(GPIO.BOARD)
 	for port in PIOMAP_list:
-		if port['direction'] == 'input':
+		if (port['direction'] == 'input') or (port['direction'] == 'clock') :
 			print('GPIO setup ', port['GPIO'], ' OUT')
 			# GPIO.setup(port['GPIO'],GPIO.OUT)
 		if port['direction'] == 'output':

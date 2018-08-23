@@ -306,7 +306,7 @@ def forcePiFunction(*args):
 		return 1
 	else:
 		# Force PI
-		force_Pi(globals()['PIOMAP_list'],args[1])
+		wgl_parser.force_Pi(globals()['PIOMAP_list'],args[1])
 		return 0
 ################################################################
 
@@ -518,7 +518,7 @@ command_list = [
 	{"commandName": "help",             "commandHelp": "This comand prints help and command list or help for provided command\n  Syntax: help [command_name]",                                                                      "commandFunction": helpFunction             },
 	{"commandName": "printVar",         "commandHelp": "Use this command to print Variable.\n  Syntax printVar <variable>",                                                                                                         "commandFunction": printVarFunction         },
 	{"commandName": "read_pattern",     "commandHelp": "Use this command to read wgl pattern.\n  Syntax read_pattern <pattern_path>",                                                                                               "commandFunction": readPatternFunction      },
-	{"commandName": "read_piomap",      "commandHelp": "Use this command to read wgl header with PIOMAP.\n  Syntax read_piomap <pattern_path>",                                                                                     "commandFunction": readPIOMAPFunction       },
+	{"commandName": "read_pinmap",      "commandHelp": "Use this command to read wgl header with PIOMAP.\n  Syntax read_pinmap <pattern_path>",                                                                                     "commandFunction": readPIOMAPFunction       },
 	{"commandName": "execute_pattern",  "commandHelp": "Use This command to execute pattern. Available options - run all patterns or vector range.\n  Syntax: execute_pattern -vector <range> | -all",                              "commandFunction": executePatternFunction   },
 	{"commandName": "report_pinmap",    "commandHelp": "Use this command to report pinmap\n  Syntax: report_pinmap",                                                                                                                "commandFunction": reportPinmapFunction     },
 	{"commandName": "report_pattern",   "commandHelp": "Use this command to report pattern details\n  Syntax: report_pattern",                                                                                                      "commandFunction": reportPatternFunction    },

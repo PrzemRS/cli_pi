@@ -3,6 +3,7 @@ import time
 import sys
 from tabulate import tabulate
 import gpio
+import time
 
 def parse_wgl_header(file):
 	PIOMAP_list=[]
@@ -82,24 +83,47 @@ def get_direction_from_port_name(port_name,PIOMAP_list):
 	return 1
 
 def execute_vector(vector,PIOMAP_list):
-	#Drive Inputs
+	drive_inputs(vector,PIOMAP_list)
+	time.sleep(0.24)
+	outputs = capture_outputs(vector,PIOMAP_list)
+	time.sleep(0.01)
+	# TODO here compare
+	pulse_clocks(vector,PIOMAP_list)
+	return 0
+
+def drive_inputs(vector,PIOMAP_list):
 	for idx,in_port in enumerate(vector['inputs']):
-			GPIO=get_GPIO_from_port_name(in_port['port'], PIOMAP_list)
-			print('Driving', in_port['port'], GPIO, in_port['value'])
-			gpio.set_pin_value(GPIO, in_port['value'])
-	#Capture Outputs
+		GPIO=get_GPIO_from_port_name(in_port['port'], PIOMAP_list)
+		print('Driving', in_port['port'], GPIO, in_port['value'])
+		gpio.set_pin_value(GPIO, in_port['value'])
+	return 0
+
+# def drive_inputs():
+
+
+def capture_outputs(vector,PIOMAP_list):
+	outputs = []
 	for idx,out_port in enumerate(vector['outputs']):
 		if out_port['value'] != 'X':
 			GPIO=get_GPIO_from_port_name(out_port['port'],PIOMAP_list)
 			print('Capturing', out_port['port'], GPIO, out_port['value'])
+			outputs.append(get_pin_value(GPIO))
+	return outputs
+
+def pulse_clocks(vector,PIOMAP_list):
 	#Pulse Clocks Posedge
 	for idx,clock_port in enumerate(vector['clocks']):
-			GPIO=get_GPIO_from_port_name(clock_port['port'],PIOMAP_list)
-			print('Rising Edge', clock_port['port'], GPIO, clock_port['value'])
+		GPIO=get_GPIO_from_port_name(clock_port['port'],PIOMAP_list)
+		print('Rising Edge', clock_port['port'], GPIO, clock_port['value'])
+		gpio.set_pin_value(GPIO, clock_port['value'])
 	#Pulse Clocks Negedge
+	time.sleep(0.50)
 	for idx,clock_port in enumerate(vector['clocks']):
-			GPIO=get_GPIO_from_port_name(clock_port['port'],PIOMAP_list)
-			print('Falling Edge', clock_port['port'], GPIO,'0')
+		GPIO=get_GPIO_from_port_name(clock_port['port'],PIOMAP_list)
+		print('Falling Edge', clock_port['port'], GPIO,'0')
+		gpio.set_pin_value(GPIO, '0')
+	time.sleep(0.05)
+	return 0
 
 def execute_pattern(PIOMAP_list,VECTOR_list,from_idx,to_idx):
 	for idx in range(int(from_idx),int(to_idx)+1):
@@ -141,6 +165,7 @@ def force_Pi(PIOMAP_list,input_vector):
 		print('The arugment must have the same width as numer of input ports (',len(inputs),'). Argument length is (', len(input_vector), ')')
 		return 1
 	print('Driving input ports:')
+	drive_inputs()
 	print(tabulate(force_PI_data,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
 	return 0
 

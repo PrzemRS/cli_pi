@@ -139,13 +139,10 @@ def executePatternFunction(*args):
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
 	if globals()['VECTOR_list']=='':
-		print('Use read_pattern to read wgl pattern first.')
+		print(error_dict["noPattern"])
 		return 1
-	if len(args) == 4 and args[1] == "-vector":
+	if len(args) == 4 and str(args[1]) == "-vector":
 		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[3])
-		return 0
-	elif len(args) == 3   and args[1] == "-vector":
-		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[2])
 		return 0
 	elif len(args) == 2 and args[1] == "-all":
 		# Execute all pattern vectors
@@ -153,7 +150,6 @@ def executePatternFunction(*args):
 		return 0
 
 	else:
-		print(len(args))
 		print(error_dict["syntaxError"], command_name)
 		return 1
 ################################################################
@@ -519,7 +515,7 @@ command_list = [
 	{"commandName": "printVar",         "commandHelp": "Use this command to print Variable.\n  Syntax printVar <variable>",                                                                                                         "commandFunction": printVarFunction         },
 	{"commandName": "read_pattern",     "commandHelp": "Use this command to read wgl pattern.\n  Syntax read_pattern <pattern_path>",                                                                                               "commandFunction": readPatternFunction      },
 	{"commandName": "read_piomap",      "commandHelp": "Use this command to read wgl header with PIOMAP.\n  Syntax read_piomap <pattern_path>",                                                                                     "commandFunction": readPIOMAPFunction       },
-	{"commandName": "execute_pattern",  "commandHelp": "Use This command to execute pattern. Available options - run all patterns or vector range.\n  Syntax: execute_pattern -vector <range> | -all",                              "commandFunction": executePatternFunction   },
+	{"commandName": "execute_pattern",  "commandHelp": "Use This command to execute pattern. Available options - run all patterns or vector range.\n  Syntax: execute_pattern -vector <range start> <range stop> | -all",           "commandFunction": executePatternFunction   },
 	{"commandName": "report_pinmap",    "commandHelp": "Use this command to report pinmap\n  Syntax: report_pinmap",                                                                                                                "commandFunction": reportPinmapFunction     },
 	{"commandName": "report_pattern",   "commandHelp": "Use this command to report pattern details\n  Syntax: report_pattern",                                                                                                      "commandFunction": reportPatternFunction    },
 	{"commandName": "report_vector",    "commandHelp": "Use this command to report pattern vector details\n  Syntax: report_vector <vector>",                                                                                       "commandFunction": reportVectorFunction     },
@@ -543,7 +539,8 @@ error_dict = {
 	"syntaxError":      "Error: Syntax error. Check syntax using help",
 	"dofileError":      "Error: Dofile execution error. Dofile execution has been interrupted.\n       Last command exit status:",
 	"fileNotExists":    "Error: Provided file doesn't exists. Check path for the file:\n      ",
-	"indexOutOfRange":  "Error: Vector of that range doesn't exist."
+	"indexOutOfRange":  "Error: Vector of that range doesn't exist.",
+    "noPattern":        "Error: Use read_pattern to read wgl pattern first.",
 }
 
 info_dict = {

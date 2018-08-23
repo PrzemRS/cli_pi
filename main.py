@@ -302,7 +302,7 @@ def forcePiFunction(*args):
 		return 1
 	else:
 		# Force PI
-		force_Pi(globals()['PIOMAP_list'],args[1])
+		wgl_parser.force_Pi(globals()['PIOMAP_list'],args[1])
 		return 0
 ################################################################
 
@@ -522,7 +522,7 @@ command_list = [
 	{"commandName": "apply_shift",      "commandHelp": "Use this command to apply shift procedure though flip flops\n  Syntax: apply_shift <value> <response>\n  Note: If some bits in response are don't care, mark it as x",      "commandFunction": applyShiftFunction       },
 	{"commandName": "apply_capture",    "commandHelp": "Use this command to apply capture procedure from flip flops\n  Syntax: apply_capture",                                                                                      "commandFunction": applyCaptureFunction     },
 	{"commandName": "apply_unload",     "commandHelp": "Use this command to apply unload procedure though flip flops\n  Syntax: unload <value> <response>\n  Note: If some bits in value are don't care, mark it as x",             "commandFunction": applyUnloadFunction      },
-	{"commandName": "force_pi",         "commandHelp": "Use this command to force primary inputs. Provide values acording to pinmap.\n  Syntax: force_pi <value>\n  Example: force_pi 01x0x1",                                      "commandFunction": forcePiFunction          },
+	{"commandName": "force_pi",         "commandHelp": "Use this command to force primary inputs. Provide values acording to pinmap.\n  Syntax: force_pi <value>\n  Example: force_pi 01x0X1",                                      "commandFunction": forcePiFunction          },
 	{"commandName": "measure_po",       "commandHelp": "Use this command to measure primary output values\n  Syntax: measure_po",                                                                                                   "commandFunction": measurePoFunction        },
 	{"commandName": "ijtag_shift",      "commandHelp": "Use this command to apply iJTAG shift procedure though TDR\n  Syntax: ijtag_shift <value> <response>\n  Note: If some bits in response are don't care, mark it as x",       "commandFunction": ijtagShiftFunction       },
 	{"commandName": "ijtag_select",     "commandHelp": "Use this command to force 0 or 1 value in ijtag_sel pin\n  Syntax: ijtag_select 0 | 1",                                                                                     "commandFunction": ijtagSelectFunction      },

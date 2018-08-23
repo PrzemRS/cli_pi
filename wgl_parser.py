@@ -170,6 +170,19 @@ def parse_wgl_piomap(filepath):
 	PIOMAP_list=parse_wgl_header(file)
 	return PIOMAP_list
 
+def compare_vectors(result_list, expected_list):
+	if len(result_list) != len(expected_list):
+		print('Error: result list length (', len(result_list), ') is different than expected list length(', len(expected_list), ').')
+		return 1
+	else:
+		result = 0
+		for result, expected in zip(result_list, expected_list):
+			if result != expected and expected != 'X' and expected != 'x':
+				print('Error: Miscompare at ',expected_list.index(expected) ,' pin.')
+				print('       Expected value: ', expected, ' result value: ', result)
+				result = 1
+		return result
+
 #if __name__ == '__main__':
 
 #   PIOMAP_list,VECTOR_list=parse_wgl('pattern.wgl')

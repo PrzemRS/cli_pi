@@ -35,12 +35,12 @@ from wgl_parser import *
 def helpFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
-	
+
 	# Check for parameters
 	if len(args) > 2:
 		print(error_dict["syntaxError"], command_name)
 		return 1
-	
+
 	elif len(args) == 2:
 		# Get daictionary fr selected command. If doesn't exist, provide error
 		selected_command = []
@@ -53,7 +53,7 @@ def helpFunction(*args):
 		else:
 			print(tabulate([[selected_command["commandName"], selected_command["commandHelp"]]]))
 			return 0
-	
+
 	else:
 		command_list_for_help = []
 		for command in command_list:
@@ -71,7 +71,7 @@ def helpFunction(*args):
 def printVarFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
-	
+
 	# Check for parameters
 	if len(args) != 2:
 		print(error_dict["syntaxError"], command_name)
@@ -142,11 +142,11 @@ def executePatternFunction(*args):
 		print('Use read_pattern to read wgl pattern first.')
 		return 1
 	if len(args) == 4 and args[1] == "-vector":
-		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[3])    
+		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[3])
 		return 0
 	elif len(args) == 3   and args[1] == "-vector":
-		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[2])    
-		return 0    
+		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[2])
+		return 0
 	elif len(args) == 2 and args[1] == "-all":
 		# Execute all pattern vectors
 		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],0,len(globals()['VECTOR_list']))
@@ -167,7 +167,7 @@ def reportPinmapFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	if globals()['PIOMAP_list']=='':
-		print('Use read_pattern to read wgl pattern first.')  
+		print('Use read_pattern to read wgl pattern first.')
 		return 1
 	# Check for parameters
 	if len(args) > 1:
@@ -188,7 +188,7 @@ def reportPatternFunction(*args):
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
 	if globals()['VECTOR_list']=='':
-		print('Use read_pattern to read wgl pattern first.')  
+		print('Use read_pattern to read wgl pattern first.')
 		return 1
 	if len(args) > 1:
 		print(error_dict["syntaxError"], command_name)
@@ -209,14 +209,18 @@ def reportVectorFunction(*args):
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
 	if globals()['VECTOR_list']=='':
-		print('Use read_pattern to read wgl pattern first.')  
+		print('Use read_pattern to read wgl pattern first.')
 		return 1
 	if len(args) != 2:
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		print('Vector', args[1], ':')
-		report_vector(globals()['VECTOR_list'][int(args[1])],globals()['PIOMAP_list'])
+		try:
+			report_vector(globals()['VECTOR_list'][int(args[1])],globals()['PIOMAP_list'])
+		except:
+			print(error_dict["indexOutOfRange"])
+			return 1
 		return 0
 ################################################################
 
@@ -294,7 +298,7 @@ def forcePiFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	if globals()['PIOMAP_list']=='':
-		print('Use read_pattern to read wgl pattern first.')  
+		print('Use read_pattern to read wgl pattern first.')
 		return 1
 	# Check for parameters
 	if len(args) != 2:
@@ -315,7 +319,7 @@ def measurePoFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	if globals()['PIOMAP_list']=='':
-		print('Use read_pattern to read wgl pattern first.')  
+		print('Use read_pattern to read wgl pattern first.')
 		return 1
 	# Check for parameters
 	if len(args) != 1:
@@ -539,6 +543,7 @@ error_dict = {
 	"syntaxError":      "Error: Syntax error. Check syntax using help",
 	"dofileError":      "Error: Dofile execution error. Dofile execution has been interrupted.\n       Last command exit status:",
 	"fileNotExists":    "Error: Provided file doesn't exists. Check path for the file:\n      ",
+	"indexOutOfRange":  "Error: Vector of that range doesn't exist."
 }
 
 info_dict = {
@@ -595,7 +600,7 @@ command_completer = WordCompleter(word_completer_list, ignore_case=True)
 dofile_mode = False
 
 def print_banner():
-	now = datetime.datetime.now() 
+	now = datetime.datetime.now()
 	print("//  Tessent ATEInsight  2018.4  ", now.strftime("%a %b %d %X %Y"))
 	print("//                Copyright 2011-2018 Mentor Graphics Corporation")
 	print("//")

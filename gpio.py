@@ -14,27 +14,25 @@ def setup(PIOMAP_list):
 	return 0
 
 def set_pin_value(gpio, value):
-	gpio_value = 0
-	# gpio_value = GPIO.LOW
-	if value == '0':
-		gpio_value = 0
-		# gpio_value = GPIO.LOW
-	if value == '1':
-		gpio_value = 1
-		# gpio_value = GPIO.HIGH
 	try:
-		print('GPIO output', gpio, ' ', gpio_value)
-		# GPIO.output(gpio,gpio_value)
+		if value == '0':
+			print('GPIO output', gpio, ' 0')
+			# GPIO.output(gpio,GPIO.LOW)
+		if value == '1':
+			print('GPIO output', gpio, ' 1')
+			# GPIO.output(gpio,GPIO.HIGH)
 	except:
+		print("Warning: Pin ", gpio, " was not set with value ", gpio_value)
 		return 1
 	return 0
 
 def get_pin_value(gpio):
 	value = 0
 	try:
-		print('GPIO input')
+		print('GPIO input ', gpio)
 		# value = GPIO.input(gpio)
 	except:
+		print("Error: Could not get value of pin ", gpio)
 		return None
 	return value
 

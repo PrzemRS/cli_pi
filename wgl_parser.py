@@ -8,7 +8,6 @@ import time
 def parse_wgl_header(file):
 	PIOMAP_list=[]
 	line = file.readline()
-	#GPIO_list=['GPIO0', 'GPIO1', 'GPIO2', 'GPIO3', 'GPIO4', 'GPIO5', 'GPIO6', 'GPIO7', 'GPIO8', 'GPIO9', 'GPIO10']
 	GPIO_list=[40, 38, 37, 36, 35, 33, 32 ,31, 29, 28]
 	GPIO_idx=0
 	while line:
@@ -26,7 +25,7 @@ def parse_wgl_header(file):
 			PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx], 'init_val' : signal_init_val})
 			GPIO_idx = GPIO_idx + 1
 			if  GPIO_idx >= len(GPIO_list):
-				print('Too many ports in pattern file: ',filepath)
+				print('Error: Too many ports in pattern file: ',filepath)
 				return 1
 
 		timeplate_line = re.search('^\s+"(\w+)" := (input|output)\[(.*)\];', line)
@@ -83,51 +82,63 @@ def get_direction_from_port_name(port_name,PIOMAP_list):
 	return 1
 
 def execute_vector(vector,PIOMAP_list):
-	drive_inputs(vector,PIOMAP_list)
-	time.sleep(0.24)
-	outputs = capture_outputs(vector,PIOMAP_list)
-	time.sleep(0.01)
-	# TODO here compare
+	value_list = [port['value'] for port in vector['inputs']]
+	#print("[DEBUG] pattern inputs ", value_list)
+	force_pi(PIOMAP_list, value_list, True)
+	time.sleep(0.024)
+	outputs = measure_po(PIOMAP_list, True)
+	#print("[DEBUG] GPIO output values ", outputs)
+	time.sleep(0.001)
+	expected_outputs = [port['value'] for port in vector['outputs']]
+	#print("[DEBUG] expected outputs ", expected_outputs)
+	compare_vectors(outputs, expected_outputs)
 	pulse_clocks(vector,PIOMAP_list)
 	return 0
 
-def drive_inputs(vector,PIOMAP_list):
-	for idx,in_port in enumerate(vector['inputs']):
-		GPIO=get_GPIO_from_port_name(in_port['port'], PIOMAP_list)
-		print('Driving', in_port['port'], GPIO, in_port['value'])
-		gpio.set_pin_value(GPIO, in_port['value'])
-	return 0
+#def drive_inputs(value_list,PIOMAP_list):
+#	gpio_list = [port['GPIO'] for port in PIOMAP_list if port['direction'] == 'input']
+#	#print("[DEBUG] GPIO inputs ", gpio_list)
+#	if len(value_list) != len(gpio_list):
+#		print('Error: value list length (', len(value_list), ') is different than number of inputs (', len(gpio_list), ').')
+#		return 1
+#	else:
+#		for pin, value in zip(gpio_list, value_list):
+#			gpio.set_pin_value(pin, value)
+#	return 0
 
-# def drive_inputs():
 
-
-def capture_outputs(vector,PIOMAP_list):
-	outputs = []
-	for idx,out_port in enumerate(vector['outputs']):
-		if out_port['value'] != 'X':
-			GPIO=get_GPIO_from_port_name(out_port['port'],PIOMAP_list)
-			print('Capturing', out_port['port'], GPIO, out_port['value'])
-			outputs.append(get_pin_value(GPIO))
-	return outputs
+#def capture_outputs(PIOMAP_list):
+#	outputs = []
+#	gpio_list = [port['GPIO'] for port in PIOMAP_list if port['direction'] == 'output']
+#	#print("[DEBUG] GPIO outputs ", gpio_list)
+#	for pin in gpio_list:
+#		outputs.append(gpio.get_pin_value(pin))
+#	print(outputs)
+#	return outputs
 
 def pulse_clocks(vector,PIOMAP_list):
-	#Pulse Clocks Posedge
-	for idx,clock_port in enumerate(vector['clocks']):
-		GPIO=get_GPIO_from_port_name(clock_port['port'],PIOMAP_list)
-		print('Rising Edge', clock_port['port'], GPIO, clock_port['value'])
-		gpio.set_pin_value(GPIO, clock_port['value'])
-	#Pulse Clocks Negedge
-	time.sleep(0.50)
-	for idx,clock_port in enumerate(vector['clocks']):
-		GPIO=get_GPIO_from_port_name(clock_port['port'],PIOMAP_list)
-		print('Falling Edge', clock_port['port'], GPIO,'0')
-		gpio.set_pin_value(GPIO, '0')
-	time.sleep(0.05)
+	clock_list = [port['GPIO'] for port in PIOMAP_list if port['direction'] == 'clock']
+	value_list = [port['value'] for port in vector['clocks']]
+	print("[DEBUG] GPIO clocks ", clock_list)
+	print("[DEBUG] GPIO clocks value ", value_list)
+	if len(value_list) != len(clock_list):
+		print('Error: value list length (', len(value_list), ') is different than number of clocks (', len(clock_list), ').')
+		return 1
+	else:
+		clock_tuple = zip(clock_list, value_list)
+		for clock, value in clock_tuple:
+			#print("[DEBUG] Rising edge")
+			gpio.set_pin_value(clock, value)
+		time.sleep(0.050)
+		for clock, value in clock_tuple:
+			#print("[DEBUG] Falling edge")
+			gpio.set_pin_value(clock, '0')
+		time.sleep(0.005)
 	return 0
 
 def execute_pattern(PIOMAP_list,VECTOR_list,from_idx,to_idx):
 	for idx in range(int(from_idx),int(to_idx)+1):
-		print('Vector : ', idx)
+		print('Note: Executing vector:', idx)
 		execute_vector(VECTOR_list[idx],PIOMAP_list)
 
 
@@ -152,7 +163,7 @@ def report_vector(vector,PIOMAP_list):
 	print(tabulate(vector_data,headers=['Port\nName', 'Type', 'GPIO', 'Value'],tablefmt='orgtbl'))
 
 
-def force_Pi(PIOMAP_list,input_vector):
+def force_pi(PIOMAP_list,input_vector, show_report):
 	inputs=[]
 	force_PI_data=[]
 	for port in PIOMAP_list:
@@ -160,25 +171,33 @@ def force_Pi(PIOMAP_list,input_vector):
 			inputs.append({'port_name' : port['port_name'], 'GPIO': port['GPIO']})
 	if len(inputs)==len(input_vector):
 		for idx,in_port in enumerate(inputs):
-			force_PI_data.append([in_port['port_name'], in_port['GPIO'], input_vector[idx]])
+			pin = in_port['GPIO']
+			value = input_vector[idx]
+			if value != '0' and value != '1':
+				value = 'X'
+			force_PI_data.append([in_port['port_name'], pin, value])
+			gpio.set_pin_value(pin, value)
 	else:
-		print('The arugment must have the same width as numer of input ports (',len(inputs),'). Argument length is (', len(input_vector), ')')
+		print('Error: The arugment must have the same width as numer of input ports (',len(inputs),'). Argument length is (', len(input_vector), ').', sep='')
 		return 1
-	print('Driving input ports:')
-	drive_inputs()
-	print(tabulate(force_PI_data,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
+	if show_report == True:
+		print('Driving input ports:')
+		print(tabulate(force_PI_data,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
 	return 0
 
-def measure_po(PIOMAP_list):
+def measure_po(PIOMAP_list, show_report):
 	captures=[]
+	captured_values=[]
 	measure_po_data=[]
 	for port in PIOMAP_list:
 		if port['direction']=='output':
-			captured_value='X'
+			captured_value=str(gpio.get_pin_value(port['GPIO']))
+			captured_values.append(captured_value)
 			captures.append([port['port_name'], port['GPIO'], captured_value])
-	print('Capturing output ports:')
-	print(tabulate(captures,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
-	return 0
+	if show_report == True:
+		print('Capturing output ports:')
+		print(tabulate(captures,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
+	return captured_values
 
 def Show_Mapping(PIOMAP_list):
 	print(tabulate(PIOMAP_list,headers={'port_name' : 'Port\nName', 'direction' : 'Type', 'GPIO' : 'GPIO', 'init_val' : 'Init\nVal'},tablefmt='orgtbl'))
@@ -200,34 +219,14 @@ def compare_vectors(result_list, expected_list):
 		print('Error: result list length (', len(result_list), ') is different than expected list length(', len(expected_list), ').')
 		return 1
 	else:
-		result = 0
+		status = 0
 		for result, expected in zip(result_list, expected_list):
 			if result != expected and expected != 'X' and expected != 'x':
-				print('Error: Miscompare at ',expected_list.index(expected) ,' pin.')
-				print('       Expected value: ', expected, ' result value: ', result)
+				print('Error: Miscompare at pin ',expected_list.index(expected) ,'.', sep='')
+				print('       Expected value: ', expected, '. Result value: ', result, sep='')
 				result = 1
-		return result
-
-#if __name__ == '__main__':
-
-#   PIOMAP_list,VECTOR_list=parse_wgl('pattern.wgl')
-#   Show_Mapping(PIOMAP_list)
-
-	#execute_pattern(VECTOR_list,0,len(VECTOR_list))
-#   execute_pattern(VECTOR_list,0,3)
-	#for Vector in VECTOR_list:
-	#   print(Vector)
-	##Show_Mapping(Pattern_dict,PIOMAP_list)
-	#input("Press Enter to continue...")
-	#Pattern=[]
-	#Pattern_transcript=[]
-	#parse_SVF_pattern(filepath,Pattern_dict,PIOMAP_list,Pattern,Pattern_transcript)
-	#execute_pattern(Pattern_dict,PIOMAP_list,Pattern,0)
+		if status == 0:
+			print('Note: No miscompares between results and expected values.')
+		return status
 
 
-	#print(Pattern)
-#
-#   #print(Pattern[0][0])
-	#print(Pattern[0][1])
-	#for transcript_line in Pattern_transcript:
-	#   print(transcript_line, end='')

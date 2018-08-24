@@ -362,7 +362,7 @@ def ijtagSelectFunction(*args):
 	if globals()['PIOMAP_list']=='':
 		print(error_dict["noPinmap"])
 		return 1
-	if len(args) != 2 or int(args[1]) not in range(2):
+	if len(args) != 2 or str(args[1]) not in ["0", "1"]:
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
@@ -384,7 +384,7 @@ def ijtagSeFunction(*args):
 	if globals()['PIOMAP_list']=='':
 		print(error_dict["noPinmap"])
 		return 1
-	if len(args) != 2 or int(args[1]) not in range(2):
+	if len(args) != 2 or str(args[1]) not in ["0", "1"]:
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
@@ -406,7 +406,7 @@ def ijtagCeFunction(*args):
 	if globals()['PIOMAP_list']=='':
 		print(error_dict["noPinmap"])
 		return 1
-	if len(args) != 2 or int(args[1]) not in range(2):
+	if len(args) != 2 or str(args[1]) not in ["0", "1"]:
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
@@ -540,11 +540,11 @@ error_dict = {
 	"commandNotFound":  "Error: Command not found. To check available commands type help",
 	"validatorIssue":   "Error: Something goes wrong with command parsing :(",
 	"syntaxError":      "Error: Syntax error. Check syntax using help",
-	"dofileError":      "Error: Dofile execution error. Dofile execution has been interrupted.\n       Last command exit status:",
+	"dofileError":      "Error: Dofile execution error. Dofile execution has been aborted.\n       Last command exit status:",
 	"fileNotExists":    "Error: Provided file doesn't exists. Check path for the file:\n      ",
 	"indexOutOfRange":  "Error: Vector of that range doesn't exist.",
 	"noPattern":        "Error: Use read_pattern to read wgl pattern first.",
-	"noPinmap":         "Error: Use read_pinmap or read_pattern to get pin information first."
+	"noPinmap":         "Error: Use read_pinmap or read_pattern to set pinout."
 }
 
 info_dict = {

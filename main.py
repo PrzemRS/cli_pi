@@ -359,14 +359,15 @@ def ijtagSelectFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
 	if len(args) != 2 or int(args[1]) not in range(2):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply iJTAG select value
-		print("Hello from function ijtagSelectFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
+		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', str(args[1]))
 		return 0
 ################################################################
 
@@ -380,14 +381,15 @@ def ijtagSeFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
 	if len(args) != 2 or int(args[1]) not in range(2):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply iJTAG se value
-		print("Hello from function ijtagSeFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
+		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', str(args[1]))
 		return 0
 ################################################################
 
@@ -401,14 +403,15 @@ def ijtagCeFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
 	if len(args) != 2 or int(args[1]) not in range(2):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply iJTAG ce value
-		print("Hello from function ijtagCeFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
+		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', str(args[1]))
 		return 0
 ################################################################
 
@@ -525,7 +528,7 @@ command_list = [
 	{"commandName": "force_pi",         "commandHelp": "Use this command to force primary inputs. Provide values acording to pinmap.\n  Syntax: force_pi <value>\n  Example: force_pi 01x0X1",                                      "commandFunction": forcePiFunction          },
 	{"commandName": "measure_po",       "commandHelp": "Use this command to measure primary output values\n  Syntax: measure_po",                                                                                                   "commandFunction": measurePoFunction        },
 	{"commandName": "ijtag_shift",      "commandHelp": "Use this command to apply iJTAG shift procedure though TDR\n  Syntax: ijtag_shift <value> <response>\n  Note: If some bits in response are don't care, mark it as x",       "commandFunction": ijtagShiftFunction       },
-	{"commandName": "ijtag_select",     "commandHelp": "Use this command to force 0 or 1 value in ijtag_sel pin\n  Syntax: ijtag_select 0 | 1",                                                                                     "commandFunction": ijtagSelectFunction      },
+	{"commandName": "ijtag_sel",        "commandHelp": "Use this command to force 0 or 1 value in ijtag_sel pin\n  Syntax: ijtag_sel 0 | 1",                                                                                     "commandFunction": ijtagSelectFunction      },
 	{"commandName": "ijtag_se",         "commandHelp": "Use this command to force 0 or 1 value in ijtag_se pin\n  Syntax: ijtag_se 0 | 1",                                                                                          "commandFunction": ijtagSeFunction          },
 	{"commandName": "ijtag_ce",         "commandHelp": "Use this command to force 0 or 1 value in ijtag_ce pin\n  Syntax: ijtag_ce 0 | 1",                                                                                          "commandFunction": ijtagCeFunction          },
 	{"commandName": "pulse_tck",        "commandHelp": "Use this command to pulse ijtag_tck clock once\n  Syntax: pulse_tck",                                                                                                       "commandFunction": pulseTckFunction         },

@@ -229,5 +229,24 @@ def compare_vectors(result_list, expected_list):
 			print('Note: No miscompares between results and expected values.')
 		return status
 		
+def force_single_pin(PIOMAP_list, pin_name, value, show_report=True):
+	pin_exists = False
+	for pin in PIOMAP_list:
+		if pin['port_name'] == pin_name:
+			#print('[DEBUG] pin exist', pin_name)
+			pin_exists = True
+			pin_gpio = pin['GPIO']
+			if pin['direction'] == 'output':
+				print('Error: Pin', pin_name, 'is defined as output')
+				return 1
+	gpio.set_pin_value(pin_gpio, value)
+	
+	if not pin_exists:
+		print('Error: Pin', pin_name, 'does not exist.')
+		return 1
+	if show_report == True:
+		print('Driving port:')
+		print(tabulate([[pin_name, pin_gpio, value]],headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
+	return 0
 
 

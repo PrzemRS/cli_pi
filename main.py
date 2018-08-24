@@ -163,7 +163,7 @@ def reportPinmapFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	if globals()['PIOMAP_list']=='':
-		print('Use read_pattern to read wgl pattern first.')
+		print(error_dict["noPinmap"])
 		return 1
 	# Check for parameters
 	if len(args) > 1:
@@ -184,7 +184,7 @@ def reportPatternFunction(*args):
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
 	if globals()['VECTOR_list']=='':
-		print('Use read_pattern to read wgl pattern first.')
+		print(error_dict["noPattern"])
 		return 1
 	if len(args) > 1:
 		print(error_dict["syntaxError"], command_name)
@@ -205,7 +205,7 @@ def reportVectorFunction(*args):
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
 	if globals()['VECTOR_list']=='':
-		print('Use read_pattern to read wgl pattern first.')
+		print(error_dict["noPattern"])
 		return 1
 	if len(args) != 2:
 		print(error_dict["syntaxError"], command_name)
@@ -294,7 +294,7 @@ def forcePiFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	if globals()['PIOMAP_list']=='':
-		print('Use read_pinmap or read_pattern to read pin information.')
+		print(error_dict["noPinmap"])
 		return 1
 	# Check for parameters
 	if len(args) != 2:
@@ -302,7 +302,7 @@ def forcePiFunction(*args):
 		return 1
 	else:
 		# Force PI
-		wgl_parser.force_pi(globals()['PIOMAP_list'],args[1], True)
+		wgl_parser.force_pi(globals()['PIOMAP_list'],args[1])
 		return 0
 ################################################################
 
@@ -315,7 +315,7 @@ def measurePoFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	if globals()['PIOMAP_list']=='':
-		print('Use read_pattern to read wgl pattern first.')
+		print(error_dict["noPinmap"])
 		return 1
 	# Check for parameters
 	if len(args) != 1:
@@ -323,7 +323,7 @@ def measurePoFunction(*args):
 		return 1
 	else:
 		# Measure PO
-		wgl_parser.measure_po(globals()['PIOMAP_list'], True)
+		wgl_parser.measure_po(globals()['PIOMAP_list'])
 		return 0
 ################################################################
 
@@ -540,7 +540,8 @@ error_dict = {
 	"dofileError":      "Error: Dofile execution error. Dofile execution has been interrupted.\n       Last command exit status:",
 	"fileNotExists":    "Error: Provided file doesn't exists. Check path for the file:\n      ",
 	"indexOutOfRange":  "Error: Vector of that range doesn't exist.",
-    "noPattern":        "Error: Use read_pattern to read wgl pattern first.",
+	"noPattern":        "Error: Use read_pattern to read wgl pattern first.",
+	"noPinmap":         "Error: Use read_pinmap or read_pattern to get pin information first."
 }
 
 info_dict = {

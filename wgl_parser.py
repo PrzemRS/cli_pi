@@ -163,7 +163,7 @@ def report_vector(vector,PIOMAP_list):
 	print(tabulate(vector_data,headers=['Port\nName', 'Type', 'GPIO', 'Value'],tablefmt='orgtbl'))
 
 
-def force_pi(PIOMAP_list,input_vector, show_report):
+def force_pi(PIOMAP_list,input_vector, show_report=True):
 	inputs=[]
 	force_PI_data=[]
 	for port in PIOMAP_list:
@@ -185,7 +185,7 @@ def force_pi(PIOMAP_list,input_vector, show_report):
 		print(tabulate(force_PI_data,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
 	return 0
 
-def measure_po(PIOMAP_list, show_report):
+def measure_po(PIOMAP_list, show_report=True):
 	captures=[]
 	captured_values=[]
 	measure_po_data=[]
@@ -228,5 +228,6 @@ def compare_vectors(result_list, expected_list):
 		if status == 0:
 			print('Note: No miscompares between results and expected values.')
 		return status
+		
 
 

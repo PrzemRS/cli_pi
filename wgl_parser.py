@@ -8,64 +8,76 @@ import time
 def parse_wgl_header(file):
 	PIOMAP_list=[]
 	line = file.readline()
-	GPIO_list=[40, 38, 37, 36, 35, 33, 32 ,31, 29, 28]
+	# GROUND - 39, 34, 30, 25, 20, 14, 09, 06
+	# DC POWER - 17, 04, 02, 01
+	GPIO_list=[40, 38, 37, 36, 35, 33, 32 ,31, 29, 28, 27, 26, 24, 23, 22, 21, 19, 18, 16, 15, 13, 12, 11, 10, 8, 7, 5, 3]
 	GPIO_idx=0
 	while line:
-		signal_line = re.search('^\s+"(\w+)" : (input|output)(?: initialp\[(\w+)\])?;', line)
-		if signal_line:
-			signal_name=signal_line.group(1)
-			signal_direction=signal_line.group(2)
-			if signal_direction == 'input':
-				if signal_line.group(3) == 'N':
-					signal_init_val='0'
-			else:
-				signal_init_val='X'
-
-			#PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx], 'init_val' : signal_init_val, 'timeplate' : ''})
-			PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx], 'init_val' : signal_init_val})
-			GPIO_idx = GPIO_idx + 1
-			if  GPIO_idx >= len(GPIO_list):
-				print('Error: Too many ports in pattern file: ',filepath)
-				return 1
-
-		timeplate_line = re.search('^\s+"(\w+)" := (input|output)\[(.*)\];', line)
+		timeplate_line = re.search('^\s+"(\w+)"(\[\d+\])? := (input|output)\[(.*)\];', line)
 		if timeplate_line:
 			signal_name=timeplate_line.group(1)
-			signal_direction=timeplate_line.group(2)
-			signal_timeplate=timeplate_line.group(3)
-			for idx,port in enumerate(PIOMAP_list):
-				if port['port_name']==signal_name:
-					#PIOMAP_list[idx]['timeplate']=signal_timeplate
-					clock_timeplate = re.search('\d+\w+:D, \d+\w+:S, \d+\w+:D', signal_timeplate)
-					if clock_timeplate:
-						PIOMAP_list[idx]['direction']='clock'
-
+			bus_idx=timeplate_line.group(2)
+			signal_direction=timeplate_line.group(3)
+			signal_timeplate=timeplate_line.group(4)
+			if bus_idx is not None:
+				signal_name=signal_name+bus_idx
+			clock_timeplate = re.search('\d+\w+:D, \d+\w+:S, \d+\w+:D', signal_timeplate)
+			if clock_timeplate:
+				signal_direction='clock'
+			if  GPIO_idx >= len(GPIO_list):
+				print('Error: Too many ports in pattern file.')
+				return 1
+			PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx]})
+			GPIO_idx = GPIO_idx + 1
 
 		break_line = re.search('pattern Chain_Scan_test\(',line)
 		if break_line:
 			gpio.setup(PIOMAP_list)
 			return PIOMAP_list
-
 		line = file.readline()
 
 def parse_wgl_pattern(file,PIOMAP_list):
 	line = file.readline()
 	VECTOR_list=[]
+	vector_done = False
+	vector_multiline = False
 	while line:
-		vector_line = re.search('vector.* := \[ ([ \w]+) \];', line)
-		if vector_line:
-			Vector=list(vector_line.group(1).split())
+		vector_single_line = re.search('^\s*vector.* := \[ ([ 0|1|X|x|\-]+) \];\s*$', line)
+		vector_done = False
+		if vector_single_line:
+			vector_done = True
+			vector_line = vector_single_line.group(1)
+		if vector_multiline:
+			vector_multiple_line2 = re.search('^\s*([ 0|1|X|x|\-]+)\s*$', line)
+			vector_multiple_line3 = re.search('^\s*([ 0|1|X|x|\-]+) \];\s*$', line)
+			if vector_multiple_line2:
+				vector_line = vector_line + " " + vector_multiple_line2.group(1)
+			elif vector_multiple_line3:
+				vector_line = vector_line + " " + vector_multiple_line3.group(1)
+				vector_multiline = False
+				vector_done = True
+			else:
+				vector_line = ""
+				vector_multiline = False
+				vector_done = False
+		vector_multiple_line1 = re.search('^\s*vector.* := \[ ([ 0|1|X|x|\-]+)\s*$', line)
+		if vector_multiple_line1:
+			vector_line = vector_multiple_line1.group(1)
+			vector_multiline = True
+		if vector_done:
+			Vector=list(vector_line.split())
 			Vector_clocks=[]
 			Vector_inputs=[]
 			Vector_outputs=[]
-			for index,port in enumerate(PIOMAP_list):
-				if port['direction'] == 'clock':
-					Vector_clocks.append({'port' : port['port_name'], 'value' : Vector[index]})
-				elif port['direction'] == 'input':
-					Vector_inputs.append({'port' : port['port_name'], 'value' : Vector[index]})
-				elif port['direction'] == 'output':
-					Vector_outputs.append({'port' : port['port_name'], 'value' : Vector[index]})
-			VECTOR_list.append({'clocks': Vector_clocks,'inputs' : Vector_inputs, 'outputs' : Vector_outputs})
+			if len(Vector) == len(PIOMAP_list):
+				for index,port in enumerate(PIOMAP_list):
+					if port['direction'] == 'clock':
+						Vector_clocks.append({'port' : port['port_name'], 'value' : Vector[index]})
+					elif port['direction'] == 'input':
+						Vector_inputs.append({'port' : port['port_name'], 'value' : Vector[index]})
+					elif port['direction'] == 'output':
+						Vector_outputs.append({'port' : port['port_name'], 'value' : Vector[index]})
+				VECTOR_list.append({'clocks': Vector_clocks,'inputs' : Vector_inputs, 'outputs' : Vector_outputs})
 		line = file.readline()
 	return VECTOR_list
 
@@ -228,7 +240,7 @@ def compare_vectors(result_list, expected_list):
 		if status == 0:
 			print('Note: No miscompares between results and expected values.')
 		return status
-		
+
 def force_single_pin(PIOMAP_list, pin_name, value, show_report=True):
 	pin_exists = False
 	for pin in PIOMAP_list:
@@ -240,7 +252,7 @@ def force_single_pin(PIOMAP_list, pin_name, value, show_report=True):
 				print('Error: Pin', pin_name, 'is defined as output')
 				return 1
 	gpio.set_pin_value(pin_gpio, value)
-	
+
 	if not pin_exists:
 		print('Error: Pin', pin_name, 'does not exist.')
 		return 1
@@ -248,5 +260,3 @@ def force_single_pin(PIOMAP_list, pin_name, value, show_report=True):
 		print('Driving port:')
 		print(tabulate([[pin_name, pin_gpio, value]],headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
 	return 0
-
-

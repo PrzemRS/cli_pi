@@ -371,6 +371,7 @@ def tck_pulse():
 	time.sleep(0.050)
 	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_tck', '0')
 	time.sleep(0.005)
+
 def shift(values):
 	response = ""
 	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '1')

@@ -232,16 +232,25 @@ def reportVectorFunction(*args):
 def applyShiftFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
+	# Regex for input string
+	pattern = r'[^xX01]'
 	# Check for parameters
-	if len(args) != 3:
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
+	if len(args) != 3 or re.search(pattern, str(args[1])) or re.search(pattern, str(args[2])):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply shift and check response
-		print("Hello from function applyShiftFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
-		return 0
+		values = args[1]
+		expected_response = args[2]
+		if len(values) != len(expected_response):
+			print(error_dict["differentLengthValuesError"])
+			return 1
+		response = apply_shift(values, "1")
+		status = wgl_parser.compare_vectors(response, expected_response)
+		return status
 ################################################################
 
 ################################################################
@@ -253,14 +262,16 @@ def applyCaptureFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
 	# Check for parameters
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
 	if len(args) != 1:
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply capture
-		print("Hello from function applyCaptureFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
+		set_scan_en('0')	
+		test_clock_pulse()
 		return 0
 ################################################################
 
@@ -274,17 +285,48 @@ def applyCaptureFunction(*args):
 def applyUnloadFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
+	# Regex for input string
+	pattern = r'[^xX01]'
 	# Check for parameters
-	if len(args) != 3:
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
+	if len(args) != 3 or re.search(pattern, str(args[1])) or re.search(pattern, str(args[2])):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply unload and check response
-		print("Hello from function applyUnloadFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
-		return 0
+		values = args[1]
+		expected_response = args[2]
+		if len(values) != len(expected_response):
+			print(error_dict["differentLengthValuesError"])
+			return 1
+		response = apply_shift(values, "0")
+		status = wgl_parser.compare_vectors(response, expected_response)
+		return status
 ################################################################
+
+def set_scan_en(value):
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'scan_en',value)
+
+def test_clock_pulse():
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'test_clock', '1')
+	time.sleep(0.050)
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'test_clock', '0')
+	time.sleep(0.005)
+
+def apply_shift(values, scan_en_value):
+	set_scan_en(scan_en_value)
+	response = ""
+	for value in values:
+		#print("[DEBUG] Shift value: ", value)
+		if value not in ["x", "X"]:
+			wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'si', value)
+		response += wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'so')
+		#print("[DEBUG] Captured values: ", response, "\n[DEBUG] Pulse tck")
+		test_clock_pulse()
+	set_scan_en("0")
+	return response
 
 ################################################################
 #
@@ -341,7 +383,7 @@ def ijtagShiftFunction(*args):
 	command_name = command_dictionary["commandName"]
 
 	# Regex for input string
-	pattern = r'[^\.a-z0-9]'
+	pattern = r'[^xX01]'
 
 	# Check for parameters
 	if globals()['PIOMAP_list']=='':
@@ -376,12 +418,11 @@ def shift(values):
 	response = ""
 	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '1')
 	for value in values:
-		print("[DEBUG] Shift value: ", value)
-		#if value not in ["x", "X"]:
-			#wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_si', value)
-		response += '0'
-		 #wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'ijtag_so')
-		print("[DEBUG] Captured values: ", response, "\n[DEBUG] Pulse tck")
+		#print("[DEBUG] Shift value: ", value)
+		if value not in ["x", "X"]:
+			wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_si', value)
+		response += wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'ijtag_so')
+		#print("[DEBUG] Captured values: ", response, "\n[DEBUG] Pulse tck")
 		tck_pulse()
 	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '0')
 	return response

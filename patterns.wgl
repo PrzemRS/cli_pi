@@ -1,0 +1,144 @@
+{ WGL format test patterns produced by Tessent Shell 2018.4-snapshot_2018.08.28_03.04 }
+{ Filename       : patterns.wgl }
+{ Timefile       : DEFAULT }
+{ Scan operation : PARALLEL }
+{ Idstamp        : 2018.4-snapshot_2018.08.28_03.04:0052:6099:6:ad6f }
+{ Fault          : STUCK }
+{ Coverage       : 100.00(TC) 94.59(FC) }
+{ Date           : Tue Aug 28 00:52:29 2018 }
+
+{ Begin_Verify_Section }
+{   format            = WGL }
+{   serial_flag       = OFF }
+{   test_set_type     = ALL_TEST }
+{   pad_value         = X }
+{   pattern_begin     = 0 }
+{   pattern_end       = 5 }
+{   one_setup         = ON }
+{   no_initialization = OFF }
+{   pattern_checksum  = 477 }
+{ End_Verify_Section }
+waveform test_module
+    signal
+        "a" : input initialp[N];
+        "b" : input initialp[N];
+        "c" : input initialp[N];
+        "d" : input initialp[N];
+        "e" : input initialp[N];
+        "clk" : input initialp[N];
+        "scn_en" : input initialp[N];
+        "scn_in" : input initialp[N];
+        "out" : output;
+        "sc_out" : output;
+    end
+    scancell
+        { Group: grp1 }
+        { Chain: chain1 }
+        "s2"; "s1"; 
+        groupgrp1chain1 ["s2", "s1"];
+    end
+    scanchain
+        { Group: grp1 }
+        chain1_chain[ "scn_in", "s1", "s2", "sc_out"];
+    end
+    timeplate tp1 period 4ns
+        "a" := input[0ns:S];
+        "b" := input[0ns:S];
+        "c" := input[0ns:S];
+        "d" := input[0ns:S];
+        "e" := input[0ns:S];
+        "clk" := input[0ns:D, 2ns:S, 3ns:D];
+        "scn_en" := input[0ns:S];
+        "scn_in" := input[0ns:S];
+        "out" := output[0ns:X, 1ns:Q, 2ns:X];
+        "sc_out" := output[0ns:X, 1ns:Q, 2ns:X];
+    end
+    scanstate
+        Ochain1_sts000000_000003 := groupgrp1chain1 (XX);
+        Ichain1_sts000000_000003 := groupgrp1chain1 (01);
+        Ochain1_sts000001_000006 := groupgrp1chain1 (01);
+        Ichain1_sts000001_000006 := groupgrp1chain1 (10);
+        Ochain1_sts000001_000009 := groupgrp1chain1 (10);
+        Ichain1_sts000001_000009 := groupgrp1chain1 (10);
+        Ochain1_sts000000_000011 := groupgrp1chain1 (XX);
+        Ichain1_sts000000_000011 := groupgrp1chain1 (10);
+        Ochain1_sts000001_000014 := groupgrp1chain1 (00);
+        Ichain1_sts000001_000014 := groupgrp1chain1 (01);
+        Ochain1_sts000002_000017 := groupgrp1chain1 (11);
+        Ichain1_sts000002_000017 := groupgrp1chain1 (00);
+        Ochain1_sts000003_000020 := groupgrp1chain1 (01);
+        Ichain1_sts000003_000020 := groupgrp1chain1 (01);
+        Ochain1_sts000004_000023 := groupgrp1chain1 (11);
+        Ichain1_sts000004_000023 := groupgrp1chain1 (10);
+        Ochain1_sts000005_000026 := groupgrp1chain1 (01);
+        Ichain1_sts000005_000026 := groupgrp1chain1 (10);
+        Ochain1_sts000005_000029 := groupgrp1chain1 (10);
+        Ichain1_sts000005_000029 := groupgrp1chain1 (10);
+    end
+    pattern Chain_Scan_test("a", "b", "c", "d", "e", "clk", "scn_en", "scn_in", 
+        "out", "sc_out")
+        { Pattern 0 Vector 0 TesterCycle 0 }
+        vector(+, tp1) := [ X X X X X 0 X X X X ];
+        { Chain_test }
+        { Pattern 0 Vector 1 TesterCycle 1 }
+        { Begin chain test }
+        { Pattern 0 Vector 1 TesterCycle 1 }
+        vector(+, tp1) := [ X X X X X 0 1 X X X ];
+        scan(+, tp1)   := [ X X X X X 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000000_000003],
+        input[chain1_chain: Ichain1_sts000000_000003];
+        vector(+, tp1) := [ X X X X X 0 1 1 X X ];
+        { Pattern 1 Vector 4 TesterCycle 5 }
+        vector(+, tp1) := [ X X X X X 0 1 1 X X ];
+        scan(+, tp1)   := [ X X X X X 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000001_000006],
+        input[chain1_chain: Ichain1_sts000001_000006];
+        vector(+, tp1) := [ X X X X X 0 1 1 X X ];
+        vector(+, tp1) := [ X X X X X 0 1 1 X X ];
+        scan(+, tp1)   := [ X X X X X 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000001_000009],
+        input[chain1_chain: Ichain1_sts000001_000009];
+        { End chain test }
+        { Scan_test }
+        { Pattern 0 Vector 9 TesterCycle 12 }
+        vector(+, tp1) := [ X X X X X 0 1 1 X X ];
+        scan(+, tp1)   := [ X X X X X 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000000_000011],
+        input[chain1_chain: Ichain1_sts000000_000011];
+        vector(+, tp1) := [ 0 1 1 1 1 1 0 1 0 1 ];
+        { Pattern 1 Vector 12 TesterCycle 16 }
+        vector(+, tp1) := [ 0 1 1 1 1 0 1 1 X X ];
+        scan(+, tp1)   := [ 0 1 1 1 1 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000001_000014],
+        input[chain1_chain: Ichain1_sts000001_000014];
+        vector(+, tp1) := [ 0 0 1 1 1 1 0 1 1 0 ];
+        { Pattern 2 Vector 15 TesterCycle 20 }
+        vector(+, tp1) := [ 0 0 1 1 1 0 1 1 X X ];
+        scan(+, tp1)   := [ 0 0 1 1 1 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000002_000017],
+        input[chain1_chain: Ichain1_sts000002_000017];
+        vector(+, tp1) := [ 1 1 0 1 0 1 0 0 1 0 ];
+        { Pattern 3 Vector 18 TesterCycle 24 }
+        vector(+, tp1) := [ 1 1 0 1 0 0 1 0 X X ];
+        scan(+, tp1)   := [ 1 1 0 1 0 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000003_000020],
+        input[chain1_chain: Ichain1_sts000003_000020];
+        vector(+, tp1) := [ 0 1 1 0 1 1 0 0 1 0 ];
+        { Pattern 4 Vector 21 TesterCycle 28 }
+        vector(+, tp1) := [ 0 1 1 0 1 0 1 0 X X ];
+        scan(+, tp1)   := [ 0 1 1 0 1 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000004_000023],
+        input[chain1_chain: Ichain1_sts000004_000023];
+        vector(+, tp1) := [ 1 0 0 1 0 1 0 1 1 1 ];
+        { Pattern 5 Vector 24 TesterCycle 32 }
+        vector(+, tp1) := [ 1 0 0 1 0 0 1 1 X X ];
+        scan(+, tp1)   := [ 1 0 0 1 0 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000005_000026],
+        input[chain1_chain: Ichain1_sts000005_000026];
+        vector(+, tp1) := [ 1 1 1 1 1 1 0 1 0 1 ];
+        vector(+, tp1) := [ 1 1 1 1 1 0 1 1 X X ];
+        scan(+, tp1)   := [ 1 1 1 1 1 1 1 - X - ],
+        output[chain1_chain: Ochain1_sts000005_000029],
+        input[chain1_chain: Ichain1_sts000005_000029];
+    end
+end

@@ -98,11 +98,12 @@ def readPatternFunction(*args):
 		return 1
 	else:
 		# Read pattern here
-		if os.path.isfile(args[1]):
-			globals()['PIOMAP_list'],globals()['VECTOR_list']=wgl_parser.parse_wgl(args[1])
-			return 0
+		filename = args[1]
+		if os.path.isfile(filename):
+			(status, globals()['PIOMAP_list'], globals()['VECTOR_list']) = wgl_parser.parse_wgl(filename)
+			return status
 		else:
-			print('File ',args[1], 'not found')
+			print(error_dict["fileNotExists"], filename)
 			return 1
 ################################################################
 
@@ -121,11 +122,12 @@ def readPIOMAPFunction(*args):
 		return 1
 	else:
 		# Read pattern here
-		if os.path.isfile(args[1]):
-			globals()['PIOMAP_list']=wgl_parser.parse_wgl_piomap(args[1])
-			return 0
+		filename = args[1]
+		if os.path.isfile(filename):
+			(status, globals()['PIOMAP_list']) = wgl_parser.parse_wgl_piomap(filename)
+			return status
 		else:
-			print('File ',args[1], 'not found')
+			print(error_dict["fileNotExists"], filename)
 			return 1
 ################################################################
 
@@ -144,12 +146,13 @@ def executePatternFunction(*args):
 		print(error_dict["noPattern"])
 		return 1
 	if len(args) == 4 and str(args[1]) == "-vector":
-		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[3])
-		return 0
+		# TODO: check for int values
+		status = wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[3])
+		return status
 	elif len(args) == 2 and args[1] == "-all":
 		# Execute all pattern vectors
-		wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],0,len(globals()['VECTOR_list']))
-		return 0
+		status = wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],0,len(globals()['VECTOR_list']))
+		return status
 
 	else:
 		print(error_dict["syntaxError"], command_name)
@@ -172,8 +175,8 @@ def reportPinmapFunction(*args):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
-		wgl_parser.Show_Mapping(globals()['PIOMAP_list'])
-		return 0
+		status = wgl_parser.Show_Mapping(globals()['PIOMAP_list'])
+		return status
 ################################################################
 
 ################################################################
@@ -213,13 +216,14 @@ def reportVectorFunction(*args):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
-		print('Vector', args[1], ':')
+		status = 0
+		print('Vector ', args[1], ':',sep='')
 		try:
-			report_vector(globals()['VECTOR_list'][int(args[1])],globals()['PIOMAP_list'])
+			status = wgl_parser.report_vector(globals()['VECTOR_list'][int(args[1])],globals()['PIOMAP_list'])
 		except:
 			print(error_dict["indexOutOfRange"])
 			return 1
-		return 0
+		return status
 ################################################################
 
 ################################################################
@@ -270,7 +274,7 @@ def applyCaptureFunction(*args):
 		return 1
 	else:
 		# Apply capture
-		set_scan_en('0')	
+		set_scan_en('0')
 		test_clock_pulse()
 		return 0
 ################################################################
@@ -307,13 +311,15 @@ def applyUnloadFunction(*args):
 ################################################################
 
 def set_scan_en(value):
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'scan_en',value)
+	status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'scan_en',value)
+	return status
 
 def test_clock_pulse():
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'test_clock', '1')
+	status1 = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'test_clock', '1')
 	time.sleep(0.050)
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'test_clock', '0')
+	status0 = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'test_clock', '0')
 	time.sleep(0.005)
+	return status1 or status0
 
 def apply_shift(values, scan_en_value):
 	set_scan_en(scan_en_value)
@@ -321,8 +327,9 @@ def apply_shift(values, scan_en_value):
 	for value in values:
 		#print("[DEBUG] Shift value: ", value)
 		if value not in ["x", "X"]:
-			wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'si', value)
-		response += wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'so')
+			status_pi = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'si', value)
+		(status_po, response_po) = wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'so')
+		response += response_po
 		#print("[DEBUG] Captured values: ", response, "\n[DEBUG] Pulse tck")
 		test_clock_pulse()
 	set_scan_en("0")
@@ -346,8 +353,8 @@ def forcePiFunction(*args):
 		return 1
 	else:
 		# Force PI
-		wgl_parser.force_pi(globals()['PIOMAP_list'],args[1])
-		return 0
+		status = wgl_parser.force_pi(globals()['PIOMAP_list'],args[1], True)
+		return status
 ################################################################
 
 ################################################################
@@ -367,8 +374,8 @@ def measurePoFunction(*args):
 		return 1
 	else:
 		# Measure PO
-		wgl_parser.measure_po(globals()['PIOMAP_list'])
-		return 0
+		(status, values) = wgl_parser.measure_po(globals()['PIOMAP_list'], True)
+		return status
 ################################################################
 
 ################################################################
@@ -399,43 +406,45 @@ def ijtagShiftFunction(*args):
 		if len(values) != len(expected_response):
 			print(error_dict["differentLengthValuesError"])
 			return 1
-		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', '1')
+		status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', '1')
 		tck_pulse()
 		response = shift(values)
 		update()
 		capture()
-		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', '0')
+		status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', '0')
 		status = wgl_parser.compare_vectors(response, expected_response)
 		return status
 ################################################################
 def tck_pulse():
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_tck', '1')
+	status1 = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_tck', '1')
 	time.sleep(0.050)
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_tck', '0')
+	status0 = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_tck', '0')
 	time.sleep(0.005)
+	return status1 or status0
 
 def shift(values):
 	response = ""
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '1')
+	status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '1')
 	for value in values:
 		#print("[DEBUG] Shift value: ", value)
 		if value not in ["x", "X"]:
-			wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_si', value)
-		response += wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'ijtag_so')
+			status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_si', value)
+		(status_po, response_po) = wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'ijtag_so')
+		response += response_po
 		#print("[DEBUG] Captured values: ", response, "\n[DEBUG] Pulse tck")
 		tck_pulse()
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '0')
+	status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '0')
 	return response
 
 def update():
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ue', '1')
+	status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ue', '1')
 	tck_pulse()
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ue', '0')
+	status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ue', '0')
 
 def capture():
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', '1')
+	status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', '1')
 	tck_pulse()
-	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', '0')
+	status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', '0')
 
 ################################################################
 #
@@ -455,8 +464,8 @@ def ijtagSelectFunction(*args):
 		return 1
 	else:
 		# Apply iJTAG select value
-		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', str(args[1]))
-		return 0
+		status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', str(args[1]))
+		return status
 ################################################################
 
 ################################################################
@@ -477,8 +486,8 @@ def ijtagSeFunction(*args):
 		return 1
 	else:
 		# Apply iJTAG se value
-		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', str(args[1]))
-		return 0
+		status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', str(args[1]))
+		return status
 ################################################################
 
 ################################################################
@@ -499,8 +508,8 @@ def ijtagCeFunction(*args):
 		return 1
 	else:
 		# Apply iJTAG ce value
-		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', str(args[1]))
-		return 0
+		status = wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', str(args[1]))
+		return status
 ################################################################
 
 ################################################################
@@ -573,6 +582,9 @@ def dofileFunction(*args):
 						print("command:", str(command).rstrip())
 						# If line contains command starting from # just print line as a commend, do not execute it
 						if command[0] != "#":
+							if command.strip() == "exit":
+								print("Note: Dofile execution has been aborted.")
+								return 0
 							result = commandValidator(command_list, command)
 							if result != 0:
 								# restore default print function and return with exit code
@@ -598,9 +610,8 @@ def exitFunction(*args):
 		return 1
 	else:
 		print(info_dict["exit"])
-		wgl_parser.gpio.exit()
-		exit()
-		return 0
+		gpio_status = wgl_parser.gpio.exit()
+		exit(gpio_status)
 ################################################################
 
 command_list = [
@@ -614,7 +625,7 @@ command_list = [
 	{"commandName": "report_vector",    "commandHelp": "Use this command to report pattern vector details\n  Syntax: report_vector <vector>",                                                                                       "commandFunction": reportVectorFunction     },
 	{"commandName": "apply_shift",      "commandHelp": "Use this command to apply shift procedure though flip flops\n  Syntax: apply_shift <value> <response>\n  Note: If some bits in response are don't care, mark it as x",      "commandFunction": applyShiftFunction       },
 	{"commandName": "apply_capture",    "commandHelp": "Use this command to apply capture procedure from flip flops\n  Syntax: apply_capture",                                                                                      "commandFunction": applyCaptureFunction     },
-	{"commandName": "apply_unload",     "commandHelp": "Use this command to apply unload procedure though flip flops\n  Syntax: unload <value> <response>\n  Note: If some bits in value are don't care, mark it as x",             "commandFunction": applyUnloadFunction      },
+	{"commandName": "apply_unload",     "commandHelp": "Use this command to apply unload procedure though flip flops\n  Syntax: apply_unload <value> <response>\n  Note: If some bits in value are don't care, mark it as x",       "commandFunction": applyUnloadFunction      },
 	{"commandName": "force_pi",         "commandHelp": "Use this command to force primary inputs. Provide values acording to pinmap.\n  Syntax: force_pi <value>\n  Example: force_pi 01x0X1",                                      "commandFunction": forcePiFunction          },
 	{"commandName": "measure_po",       "commandHelp": "Use this command to measure primary output values\n  Syntax: measure_po",                                                                                                   "commandFunction": measurePoFunction        },
 	{"commandName": "ijtag_shift",      "commandHelp": "Use this command to apply iJTAG shift procedure though TDR\n  Syntax: ijtag_shift <value> <response>\n  Note: If some bits in response are don't care, mark it as x",       "commandFunction": ijtagShiftFunction       },
@@ -628,14 +639,14 @@ command_list = [
 
 error_dict = {
 	"commandNotFound":  			"Error: Command not found. To check available commands type help",
-	"validatorIssue":   			"Error: Something goes wrong with command parsing :(",
+	"validatorIssue":   			"Error: Something went wrong with command parsing :(",
 	"syntaxError":      			"Error: Syntax error. Check syntax using help",
 	"dofileError":      			"Error: Dofile execution error. Dofile execution has been aborted.\n       Last command exit status:",
 	"fileNotExists":    			"Error: Provided file doesn't exists. Check path for the file:\n      ",
 	"indexOutOfRange":  			"Error: Vector of that range doesn't exist.",
 	"noPattern":        			"Error: Use read_pattern to read wgl pattern first.",
 	"noPinmap":         			"Error: Use read_pinmap or read_pattern to set pinout.",
-	"differentLengthValuesError":	"Error: Shift value and expected response have to have the same length."
+	"differentLengthValuesError":	"Error: Shift value and expected response have to have the same length.",
 }
 
 info_dict = {

@@ -25,15 +25,16 @@ def parse_wgl_header(file):
 			if clock_timeplate:
 				signal_direction='clock'
 			if  GPIO_idx >= len(GPIO_list):
-				print('Error: Too many ports in pattern file.')
-				return 1
+				print('Error: Too many ports in pattern file:', file.name)
+				return (1, [])
+			# TODO: check if port already saved
 			PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx]})
 			GPIO_idx = GPIO_idx + 1
 
 		break_line = re.search('pattern Chain_Scan_test\(',line)
 		if break_line:
-			gpio.setup(PIOMAP_list)
-			return PIOMAP_list
+			gpio_status = gpio.setup(PIOMAP_list)
+			return (gpio_status, PIOMAP_list)
 		line = file.readline()
 
 def parse_wgl_pattern(file,PIOMAP_list):
@@ -79,80 +80,58 @@ def parse_wgl_pattern(file,PIOMAP_list):
 						Vector_outputs.append({'port' : port['port_name'], 'value' : Vector[index]})
 				VECTOR_list.append({'clocks': Vector_clocks,'inputs' : Vector_inputs, 'outputs' : Vector_outputs})
 		line = file.readline()
-	return VECTOR_list
+	return (0, VECTOR_list)
 
 def get_GPIO_from_port_name(port_name,PIOMAP_list):
 	for port in PIOMAP_list:
 		if port['port_name']==port_name:
 			return port['GPIO']
-	return 1
+	return ""
 
 def get_direction_from_port_name(port_name,PIOMAP_list):
 	for port in PIOMAP_list:
 		if port['port_name']==port_name:
 			return port['direction']
-	return 1
+	return ""
 
-def execute_vector(vector,PIOMAP_list):
+def execute_vector(vector,PIOMAP_list,vector_id):
 	value_list = [port['value'] for port in vector['inputs']]
-	#print("[DEBUG] pattern inputs ", value_list)
-	force_pi(PIOMAP_list, value_list, True)
+	status_pi = force_pi(PIOMAP_list, value_list, True)
 	time.sleep(0.024)
-	outputs = measure_po(PIOMAP_list, True)
-	#print("[DEBUG] GPIO output values ", outputs)
+	(status_po, outputs) = measure_po(PIOMAP_list, True)
 	time.sleep(0.001)
 	expected_outputs = [port['value'] for port in vector['outputs']]
-	#print("[DEBUG] expected outputs ", expected_outputs)
-	compare_vectors(outputs, expected_outputs)
-	pulse_clocks(vector,PIOMAP_list)
-	return 0
-
-#def drive_inputs(value_list,PIOMAP_list):
-#	gpio_list = [port['GPIO'] for port in PIOMAP_list if port['direction'] == 'input']
-#	#print("[DEBUG] GPIO inputs ", gpio_list)
-#	if len(value_list) != len(gpio_list):
-#		print('Error: value list length (', len(value_list), ') is different than number of inputs (', len(gpio_list), ').')
-#		return 1
-#	else:
-#		for pin, value in zip(gpio_list, value_list):
-#			gpio.set_pin_value(pin, value)
-#	return 0
-
-
-#def capture_outputs(PIOMAP_list):
-#	outputs = []
-#	gpio_list = [port['GPIO'] for port in PIOMAP_list if port['direction'] == 'output']
-#	#print("[DEBUG] GPIO outputs ", gpio_list)
-#	for pin in gpio_list:
-#		outputs.append(gpio.get_pin_value(pin))
-#	print(outputs)
-#	return outputs
+	status_cmp = compare_vectors(outputs, expected_outputs)
+	status_clk = pulse_clocks(vector,PIOMAP_list)
+	status = status_pi or status_po or status_cmp or status_clk
+	if status:
+		print("Error: Vector", vector_id, "executed with errors.")
+	return
 
 def pulse_clocks(vector,PIOMAP_list):
 	clock_list = [port['GPIO'] for port in PIOMAP_list if port['direction'] == 'clock']
 	value_list = [port['value'] for port in vector['clocks']]
-	print("[DEBUG] GPIO clocks ", clock_list)
-	print("[DEBUG] GPIO clocks value ", value_list)
+	gpio_status = 0
 	if len(value_list) != len(clock_list):
 		print('Error: value list length (', len(value_list), ') is different than number of clocks (', len(clock_list), ').')
 		return 1
 	else:
 		clock_tuple = zip(clock_list, value_list)
 		for clock, value in clock_tuple:
-			#print("[DEBUG] Clock Rising edge")
-			gpio.set_pin_value(clock, value)
+			gpio_status = gpio.set_pin_value(clock, value)
 		time.sleep(0.050)
 		for clock, value in clock_tuple:
-			#print("[DEBUG] Clock Falling edge")
-			gpio.set_pin_value(clock, '0')
+			gpio_status = gpio.set_pin_value(clock, '0')
 		time.sleep(0.005)
-	return 0
+	return gpio_status
 
 def execute_pattern(PIOMAP_list,VECTOR_list,from_idx,to_idx):
+	execute_status = 0
 	for idx in range(int(from_idx),int(to_idx)+1):
 		print('Note: Executing vector:', idx)
-		execute_vector(VECTOR_list[idx],PIOMAP_list)
-
+		status = execute_vector(VECTOR_list[idx],PIOMAP_list,idx)
+		execute_status = execute_status or status
+	return execute_status
 
 def report_vector(vector,PIOMAP_list):
 	vector_data=[]
@@ -173,11 +152,13 @@ def report_vector(vector,PIOMAP_list):
 			vector_data.append([clock_port['port'],  direction, GPIO, clock_port['value']])
 
 	print(tabulate(vector_data,headers=['Port\nName', 'Type', 'GPIO', 'Value'],tablefmt='orgtbl'))
+	return 0
 
 
 def force_pi(PIOMAP_list,input_vector, show_report=True):
 	inputs=[]
 	force_PI_data=[]
+	gpio_status = 0
 	for port in PIOMAP_list:
 		if port['direction']=='input':
 			inputs.append({'port_name' : port['port_name'], 'GPIO': port['GPIO']})
@@ -188,48 +169,50 @@ def force_pi(PIOMAP_list,input_vector, show_report=True):
 			if value != '0' and value != '1':
 				value = 'X'
 			force_PI_data.append([in_port['port_name'], pin, value])
-			#print('[DEBUG] pin ', pin, 'value ', value)
-			gpio.set_pin_value(pin, value)
+			gpio_status = gpio.set_pin_value(pin, value)
 	else:
 		print('Error: The arugment must have the same width as numer of input ports (',len(inputs),'). Argument length is (', len(input_vector), ').', sep='')
 		return 1
 	if show_report == True:
 		print('Driving input ports:')
 		print(tabulate(force_PI_data,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
-	return 0
+	return gpio_status
 
 def measure_po(PIOMAP_list, show_report=True):
 	captures=[]
 	captured_values=[]
 	measure_po_data=[]
+	capture_status = 0
 	for port in PIOMAP_list:
 		if port['direction']=='output':
-			captured_value=str(gpio.get_pin_value(port['GPIO']))
+			(capture_status, captured_value)=gpio.get_pin_value(port['GPIO'])
+			captured_value = str(captured_value)
 			captured_values.append(captured_value)
 			captures.append([port['port_name'], port['GPIO'], captured_value])
 	if show_report == True:
 		print('Capturing output ports:')
 		print(tabulate(captures,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
-	return captured_values
+	return (capture_status, captured_value)
 
 def Show_Mapping(PIOMAP_list):
 	print(tabulate(PIOMAP_list,headers={'port_name' : 'Port\nName', 'direction' : 'Type', 'GPIO' : 'GPIO', 'init_val' : 'Init\nVal'},tablefmt='orgtbl'))
-	return
+	return 0
 
 def parse_wgl(filepath):
 	file=open(filepath, 'r')
-	PIOMAP_list=parse_wgl_header(file)
-	VECTOR_list=parse_wgl_pattern(file, PIOMAP_list)
-	return PIOMAP_list,VECTOR_list
+	(header_status, PIOMAP_list)=parse_wgl_header(file)
+	(pattern_status, VECTOR_list)=parse_wgl_pattern(file, PIOMAP_list)
+	parse_status = header_status or pattern_status
+	return (parse_status, PIOMAP_list, VECTOR_list)
 
 def parse_wgl_piomap(filepath):
 	file=open(filepath, 'r')
-	PIOMAP_list=parse_wgl_header(file)
-	return PIOMAP_list
+	(parse_status, PIOMAP_list)=parse_wgl_header(file)
+	return (parse_status, PIOMAP_list)
 
 def compare_vectors(result_list, expected_list):
 	if len(result_list) != len(expected_list):
-		print('Error: result list length (', len(result_list), ') is different than expected list length(', len(expected_list), ').')
+		print('Error: result list length (', len(result_list), ') is different than expected list length (', len(expected_list), ').', sep='')
 		return 1
 	else:
 		status = 0
@@ -252,16 +235,16 @@ def force_single_pin(PIOMAP_list, pin_name, value, show_report=True):
 			if pin['direction'] == 'output':
 				print('Error: Pin', pin_name, 'is defined as output')
 				return 1
-	#print('[DEBUG] pin_gpio ', pin_gpio, 'value ', value)
-	gpio.set_pin_value(pin_gpio, value)
 
-	if not pin_exists:
+	if pin_exists:
+		gpio_status = gpio.set_pin_value(pin_gpio, value)
+	else:
 		print('Error: Pin', pin_name, 'does not exist.')
 		return 1
 	if show_report == True:
 		print('Driving port:')
 		print(tabulate([[pin_name, pin_gpio, value]],headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
-	return 0
+	return gpio_status
 
 def measure_single_pin(PIOMAP_list, pin_name, show_report=True):
 	pin_exists = False
@@ -272,13 +255,14 @@ def measure_single_pin(PIOMAP_list, pin_name, show_report=True):
 			pin_gpio = pin['GPIO']
 			if pin['direction'] == 'input' or pin['direction'] == 'clock':
 				print('Error: Pin', pin_name, 'is defined as ', pin['direction'])
-				return 1
-	value = gpio.get_pin_value(pin_gpio)
+				return (1, 'X')
 
-	if not pin_exists:
+	if pin_exists:
+		(gpio_status, value) = gpio.get_pin_value(pin_gpio)
+	else:
 		print('Error: Pin', pin_name, 'does not exist.')
-		return 1
+		return (1, 'X')
 	if show_report == True:
 		print('Measuring port:')
 		print(tabulate([[pin_name, pin_gpio, value]],headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
-	return value
+	return (gpio_status, value)

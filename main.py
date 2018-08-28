@@ -4,6 +4,8 @@ from __future__ import unicode_literals, print_function
 import sys
 import os.path
 import datetime
+import time
+import re
 import shlex # Library for obtaining arguments from string
 from tabulate import tabulate # Library for printing tables
 from prompt_toolkit import PromptSession # Library for command prompt
@@ -337,17 +339,61 @@ def measurePoFunction(*args):
 def ijtagShiftFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
+
+	# Regex for input string
+	pattern = r'[^\.a-z0-9]'
+
 	# Check for parameters
-	if len(args) != 3:
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
+	if len(args) != 3 or re.search(pattern, str(args[1])) or re.search(pattern, str(args[2])):
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply iJTAG shift and check response
-		print("Hello from function ijtagShiftFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
-		return 0
+		values = args[1]
+		expected_response = args[2]
+		if len(values) != len(expected_response):
+			print(error_dict["differentLengthValuesError"])
+			return 1
+		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', '1')
+		tck_pulse()
+		response = shift(values)
+		update()
+		capture()
+		wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_sel', '0')
+		status = wgl_parser.compare_vectors(response, expected_response)
+		return status
 ################################################################
+def tck_pulse():
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_tck', '1')
+	time.sleep(0.050)
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_tck', '0')
+	time.sleep(0.005)
+def shift(values):
+	response = ""
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '1')
+	for value in values:
+		print("[DEBUG] Shift value: ", value)
+		#if value not in ["x", "X"]:
+			#wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_si', value)
+		response += '0'
+		 #wgl_parser.measure_single_pin(globals()['PIOMAP_list'], 'ijtag_so')
+		print("[DEBUG] Captured values: ", response, "\n[DEBUG] Pulse tck")
+		tck_pulse()
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_se', '0')
+	return response
+
+def update():
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ue', '1')
+	tck_pulse()
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ue', '0')
+
+def capture():
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', '1')
+	tck_pulse()
+	wgl_parser.force_single_pin(globals()['PIOMAP_list'], 'ijtag_ce', '0')
 
 ################################################################
 #
@@ -423,15 +469,17 @@ def ijtagCeFunction(*args):
 def pulseTckFunction(*args):
 	command_dictionary = args[0]
 	command_name = command_dictionary["commandName"]
+	# Check for pinmap availability
+	if globals()['PIOMAP_list']=='':
+		print(error_dict["noPinmap"])
+		return 1
 	# Check for parameters
 	if len(args) > 1:
 		print(error_dict["syntaxError"], command_name)
 		return 1
 	else:
 		# Apply pulse tck
-		print("Hello from function pulseTckFunction")
-		print("I was called with", len(args), "arguments:", args)
-		print("Implement me here :)")
+		tck_pulse()
 		return 0
 ################################################################
 
@@ -528,7 +576,7 @@ command_list = [
 	{"commandName": "force_pi",         "commandHelp": "Use this command to force primary inputs. Provide values acording to pinmap.\n  Syntax: force_pi <value>\n  Example: force_pi 01x0X1",                                      "commandFunction": forcePiFunction          },
 	{"commandName": "measure_po",       "commandHelp": "Use this command to measure primary output values\n  Syntax: measure_po",                                                                                                   "commandFunction": measurePoFunction        },
 	{"commandName": "ijtag_shift",      "commandHelp": "Use this command to apply iJTAG shift procedure though TDR\n  Syntax: ijtag_shift <value> <response>\n  Note: If some bits in response are don't care, mark it as x",       "commandFunction": ijtagShiftFunction       },
-	{"commandName": "ijtag_sel",        "commandHelp": "Use this command to force 0 or 1 value in ijtag_sel pin\n  Syntax: ijtag_sel 0 | 1",                                                                                     "commandFunction": ijtagSelectFunction      },
+	{"commandName": "ijtag_sel",        "commandHelp": "Use this command to force 0 or 1 value in ijtag_sel pin\n  Syntax: ijtag_sel 0 | 1",                                                                                     	"commandFunction": ijtagSelectFunction      },
 	{"commandName": "ijtag_se",         "commandHelp": "Use this command to force 0 or 1 value in ijtag_se pin\n  Syntax: ijtag_se 0 | 1",                                                                                          "commandFunction": ijtagSeFunction          },
 	{"commandName": "ijtag_ce",         "commandHelp": "Use this command to force 0 or 1 value in ijtag_ce pin\n  Syntax: ijtag_ce 0 | 1",                                                                                          "commandFunction": ijtagCeFunction          },
 	{"commandName": "pulse_tck",        "commandHelp": "Use this command to pulse ijtag_tck clock once\n  Syntax: pulse_tck",                                                                                                       "commandFunction": pulseTckFunction         },
@@ -537,14 +585,15 @@ command_list = [
 ]
 
 error_dict = {
-	"commandNotFound":  "Error: Command not found. To check available commands type help",
-	"validatorIssue":   "Error: Something goes wrong with command parsing :(",
-	"syntaxError":      "Error: Syntax error. Check syntax using help",
-	"dofileError":      "Error: Dofile execution error. Dofile execution has been aborted.\n       Last command exit status:",
-	"fileNotExists":    "Error: Provided file doesn't exists. Check path for the file:\n      ",
-	"indexOutOfRange":  "Error: Vector of that range doesn't exist.",
-	"noPattern":        "Error: Use read_pattern to read wgl pattern first.",
-	"noPinmap":         "Error: Use read_pinmap or read_pattern to set pinout."
+	"commandNotFound":  			"Error: Command not found. To check available commands type help",
+	"validatorIssue":   			"Error: Something goes wrong with command parsing :(",
+	"syntaxError":      			"Error: Syntax error. Check syntax using help",
+	"dofileError":      			"Error: Dofile execution error. Dofile execution has been aborted.\n       Last command exit status:",
+	"fileNotExists":    			"Error: Provided file doesn't exists. Check path for the file:\n      ",
+	"indexOutOfRange":  			"Error: Vector of that range doesn't exist.",
+	"noPattern":        			"Error: Use read_pattern to read wgl pattern first.",
+	"noPinmap":         			"Error: Use read_pinmap or read_pattern to set pinout.",
+	"differentLengthValuesError":	"Error: Shift value and expected response have to have the same length."
 }
 
 info_dict = {

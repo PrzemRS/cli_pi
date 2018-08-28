@@ -139,11 +139,11 @@ def pulse_clocks(vector,PIOMAP_list):
 	else:
 		clock_tuple = zip(clock_list, value_list)
 		for clock, value in clock_tuple:
-			#print("[DEBUG] Rising edge")
+			#print("[DEBUG] Clock Rising edge")
 			gpio.set_pin_value(clock, value)
 		time.sleep(0.050)
 		for clock, value in clock_tuple:
-			#print("[DEBUG] Falling edge")
+			#print("[DEBUG] Clock Falling edge")
 			gpio.set_pin_value(clock, '0')
 		time.sleep(0.005)
 	return 0
@@ -188,6 +188,7 @@ def force_pi(PIOMAP_list,input_vector, show_report=True):
 			if value != '0' and value != '1':
 				value = 'X'
 			force_PI_data.append([in_port['port_name'], pin, value])
+			#print('[DEBUG] pin ', pin, 'value ', value)
 			gpio.set_pin_value(pin, value)
 	else:
 		print('Error: The arugment must have the same width as numer of input ports (',len(inputs),'). Argument length is (', len(input_vector), ').', sep='')
@@ -236,7 +237,7 @@ def compare_vectors(result_list, expected_list):
 			if result != expected and expected != 'X' and expected != 'x':
 				print('Error: Miscompare at pin ',expected_list.index(expected) ,'.', sep='')
 				print('       Expected value: ', expected, '. Result value: ', result, sep='')
-				result = 1
+				status = 1
 		if status == 0:
 			print('Note: No miscompares between results and expected values.')
 		return status
@@ -251,6 +252,7 @@ def force_single_pin(PIOMAP_list, pin_name, value, show_report=True):
 			if pin['direction'] == 'output':
 				print('Error: Pin', pin_name, 'is defined as output')
 				return 1
+	#print('[DEBUG] pin_gpio ', pin_gpio, 'value ', value)
 	gpio.set_pin_value(pin_gpio, value)
 
 	if not pin_exists:
@@ -260,3 +262,23 @@ def force_single_pin(PIOMAP_list, pin_name, value, show_report=True):
 		print('Driving port:')
 		print(tabulate([[pin_name, pin_gpio, value]],headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
 	return 0
+
+def measure_single_pin(PIOMAP_list, pin_name, show_report=True):
+	pin_exists = False
+	for pin in PIOMAP_list:
+		if pin['port_name'] == pin_name:
+			#print('[DEBUG] pin exist', pin_name)
+			pin_exists = True
+			pin_gpio = pin['GPIO']
+			if pin['direction'] == 'input' or pin['direction'] == 'clock':
+				print('Error: Pin', pin_name, 'is defined as ', pin['direction'])
+				return 1
+	value = gpio.get_pin_value(pin_gpio)
+
+	if not pin_exists:
+		print('Error: Pin', pin_name, 'does not exist.')
+		return 1
+	if show_report == True:
+		print('Measuring port:')
+		print(tabulate([[pin_name, pin_gpio, value]],headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
+	return value

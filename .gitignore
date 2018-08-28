@@ -1,2 +1,4 @@
 .myhistory
 *.pyc
+.vscode
+__pycache__

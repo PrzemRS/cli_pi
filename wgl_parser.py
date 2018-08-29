@@ -13,7 +13,7 @@ def parse_wgl_header(file):
 	GPIO_list=[40, 38, 37, 36, 35, 33, 32 ,31, 29, 28, 27, 26, 24, 23, 22, 21, 19, 18, 16, 15, 13, 12, 11, 10, 8, 7, 5, 3]
 	GPIO_idx=0
 	while line:
-		timeplate_line = re.search(r'^\s+\"([\\|\w|\s]+)\"(\[\d+\])? := (input|output)\[(.*)\];', line)
+		timeplate_line = re.search(r'^\s+\"(\w+)\"(\[\d+\])? := (input|output)\[(.*)\];', line)
 		if timeplate_line:
 			signal_name=timeplate_line.group(1)
 			bus_idx=timeplate_line.group(2)

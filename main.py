@@ -145,18 +145,33 @@ def executePatternFunction(*args):
 	if globals()['VECTOR_list']=='':
 		print(error_dict["noPattern"])
 		return 1
-	if len(args) == 4 and str(args[1]) == "-vector":
-		# TODO: check for int values
-		status = wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],args[2],args[3])
-		return status
+
+	if (len(args) == 3 or len(args) == 4) and str(args[1]) == "-vector":
+		if len(args) == 4:
+			min_vector = args[2]
+			max_vector = args[3]
+		else:
+			min_vector = args[2]
+			max_vector = args[2]
 	elif len(args) == 2 and args[1] == "-all":
 		# Execute all pattern vectors
-		status = wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],0,len(globals()['VECTOR_list']))
-		return status
-
+		min_vector = 0
+		max_vector = len(globals()['VECTOR_list'])
 	else:
 		print(error_dict["syntaxError"], command_name)
 		return 1
+
+	try:
+		int_min_vector = int(min_vector)
+		int_max_vector = int(max_vector)
+	except ValueError:
+		print(error_dict["indexOutOfRange"])
+		return 1
+	if int_min_vector > len(globals()['VECTOR_list']) or int_max_vector > len(globals()['VECTOR_list']):
+		print(error_dict["indexOutOfRange"])
+		return 1
+	status = wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],min_vector,max_vector)
+	return status
 ################################################################
 
 ################################################################

@@ -13,7 +13,7 @@ def parse_wgl_header(file):
 	GPIO_list=[40, 38, 37, 36, 35, 33, 32 ,31, 29, 28, 27, 26, 24, 23, 22, 21, 19, 18, 16, 15, 13, 12, 11, 10, 8, 7, 5, 3]
 	GPIO_idx=0
 	while line:
-		timeplate_line = re.search('^\s+"(\w+)"(\[\d+\])? := (input|output)\[(.*)\];', line)
+		timeplate_line = re.search(r'^\s+\"([\\|\w|\s]+)\"(\[\d+\])? := (input|output)\[(.*)\];', line)
 		if timeplate_line:
 			signal_name=timeplate_line.group(1)
 			bus_idx=timeplate_line.group(2)
@@ -27,11 +27,14 @@ def parse_wgl_header(file):
 			if  GPIO_idx >= len(GPIO_list):
 				print('Error: Too many ports in pattern file:', file.name)
 				return (1, [])
-			# TODO: check if port already saved
+			saved_names = [pio['port_name'] for pio in PIOMAP_list]
+			if signal_name in saved_names:
+				print('Error: Pin', signal_name, 'defined more than once in pattern file:', file.name)
+				return (1, [])
 			PIOMAP_list.append({'port_name' : signal_name, 'direction' : signal_direction, 'GPIO' : GPIO_list[GPIO_idx]})
 			GPIO_idx = GPIO_idx + 1
 
-		break_line = re.search('pattern Chain_Scan_test\(',line)
+		break_line = re.search(r'pattern Chain_Scan_test\(',line)
 		if break_line:
 			gpio_status = gpio.setup(PIOMAP_list)
 			return (gpio_status, PIOMAP_list)
@@ -43,14 +46,14 @@ def parse_wgl_pattern(file,PIOMAP_list):
 	vector_done = False
 	vector_multiline = False
 	while line:
-		vector_single_line = re.search('^\s*vector.* := \[ ([ 0|1|X|x|\-]+) \];\s*$', line)
+		vector_single_line = re.search(r'^\s*vector.* := \[ ([ 0|1|X|x|\-]+) \];\s*$', line)
 		vector_done = False
 		if vector_single_line:
 			vector_done = True
 			vector_line = vector_single_line.group(1)
 		if vector_multiline:
-			vector_multiple_line2 = re.search('^\s*([ 0|1|X|x|\-]+)\s*$', line)
-			vector_multiple_line3 = re.search('^\s*([ 0|1|X|x|\-]+) \];\s*$', line)
+			vector_multiple_line2 = re.search(r'^\s*([ 0|1|X|x|\-]+)\s*$', line)
+			vector_multiple_line3 = re.search(r'^\s*([ 0|1|X|x|\-]+) \];\s*$', line)
 			if vector_multiple_line2:
 				vector_line = vector_line + " " + vector_multiple_line2.group(1)
 			elif vector_multiple_line3:
@@ -61,7 +64,7 @@ def parse_wgl_pattern(file,PIOMAP_list):
 				vector_line = ""
 				vector_multiline = False
 				vector_done = False
-		vector_multiple_line1 = re.search('^\s*vector.* := \[ ([ 0|1|X|x|\-]+)\s*$', line)
+		vector_multiple_line1 = re.search(r'^\s*vector.* := \[ ([ 0|1|X|x|\-]+)\s*$', line)
 		if vector_multiple_line1:
 			vector_line = vector_multiple_line1.group(1)
 			vector_multiline = True

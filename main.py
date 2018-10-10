@@ -167,7 +167,7 @@ def executePatternFunction(*args):
 	except ValueError:
 		print(error_dict["indexOutOfRange"])
 		return 1
-	if int_min_vector > len(globals()['VECTOR_list']) or int_max_vector > len(globals()['VECTOR_list']):
+	if int_min_vector >= len(globals()['VECTOR_list']) or int_max_vector > len(globals()['VECTOR_list']):
 		print(error_dict["indexOutOfRange"])
 		return 1
 	status = wgl_parser.execute_pattern(globals()['PIOMAP_list'],globals()['VECTOR_list'],min_vector,max_vector)

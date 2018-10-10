@@ -123,6 +123,7 @@ def pulse_clocks(vector,PIOMAP_list):
 		for clock, value in clock_tuple:
 			gpio_status = gpio.set_pin_value(clock, value)
 		time.sleep(0.050)
+		clock_tuple = zip(clock_list, value_list)
 		for clock, value in clock_tuple:
 			gpio_status = gpio.set_pin_value(clock, '0')
 		time.sleep(0.005)
@@ -131,6 +132,8 @@ def pulse_clocks(vector,PIOMAP_list):
 def execute_pattern(PIOMAP_list,VECTOR_list,from_idx,to_idx):
 	execute_status = 0
 	for idx in range(int(from_idx),int(to_idx)+1):
+		if idx >= len(VECTOR_list):
+			return 1
 		print('Note: Executing vector:', idx)
 		status = execute_vector(VECTOR_list[idx],PIOMAP_list,idx)
 		execute_status = execute_status or status
@@ -195,7 +198,7 @@ def measure_po(PIOMAP_list, show_report=True):
 	if show_report == True:
 		print('Capturing output ports:')
 		print(tabulate(captures,headers=['Port\nName', 'GPIO', 'Value'],tablefmt='orgtbl'))
-	return (capture_status, captured_value)
+	return (capture_status, captured_values)
 
 def Show_Mapping(PIOMAP_list):
 	print(tabulate(PIOMAP_list,headers={'port_name' : 'Port\nName', 'direction' : 'Type', 'GPIO' : 'GPIO', 'init_val' : 'Init\nVal'},tablefmt='orgtbl'))

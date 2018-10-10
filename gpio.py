@@ -12,10 +12,14 @@ def setup(PIOMAP_list):
 	GPIO.cleanup()
 	GPIO.setmode(GPIO.BOARD)
 	for port in PIOMAP_list:
-		if (port['direction'] == 'input') or (port['direction'] == 'clock') :
-			GPIO.setup(port['GPIO'],GPIO.OUT)
-		if port['direction'] == 'output':
-			GPIO.setup(port['GPIO'],GPIO.IN)
+		try:
+			if (port['direction'] == 'input') or (port['direction'] == 'clock') :
+				GPIO.setup(port['GPIO'],GPIO.OUT)
+			if port['direction'] == 'output':
+				GPIO.setup(port['GPIO'],GPIO.IN)
+		except:
+			print("Error: GPIO pin ", port['GPIO'], " cannot be set.",sep='')
+			return 1
 	return 0
 
 def set_pin_value(gpio, value):

@@ -25,12 +25,15 @@ waveform core
         "ijtag_so2" : output;
     end
     timeplate gen_tp1 period 100ns
-        "clk" := input[0ns:S];
-        "nRst" := input[0ns:S];
-        "led0" := output[0ns:X, 24ns:Q, 25ns:X];
-        "led1" := output[0ns:X, 24ns:Q, 25ns:X];
-        "led2" := output[0ns:X, 24ns:Q, 25ns:X];
-        "led3" := output[0ns:X, 24ns:Q, 25ns:X];
+        "ijtag_tck" := input[0ns:D, 25ns:S, 75ns:D];
+        "ijtag_reset" := input[0ns:S];
+        "ijtag_ce" := input[0ns:S];
+        "ijtag_se" := input[0ns:S];
+        "ijtag_ue" := input[0ns:S];
+        "ijtag_sel" := input[0ns:S];
+        "ijtag_si" := input[0ns:S];
+        "ijtag_so" := output[0ns:X, 24ns:Q, 25ns:X];
+        "ijtag_so2" := output[0ns:X, 24ns:Q, 25ns:X];
     end
     pattern Chain_Scan_test("ijtag_tck", "ijtag_reset", "ijtag_ce", "ijtag_se", 
         "ijtag_ue", "ijtag_sel", "ijtag_si", "ijtag_so", "ijtag_so2")

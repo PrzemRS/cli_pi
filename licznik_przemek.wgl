@@ -4,11 +4,6 @@
 { Idstamp        : 2018.3-snapshot_2018.07.09_03.01:9779:6099:0:0000 }
 { Date           : Mon Jul  9 14:09:46 2018 }
 
-
-           	, input wire ijtag_tck, input wire ijtag_reset, input wire ijtag_ce, 
-           	input wire ijtag_se, input wire ijtag_ue, input wire ijtag_sel, 
-           	input wire ijtag_si, output wire ijtag_so);
-
 { Begin_Verify_Section }
 {   format            = WGL }
 {   serial_flag       = OFF }
@@ -24,6 +19,7 @@ waveform core
         "backward" : input initialp[P];
         "ijtag_tck" : input initialp[N];
         "ijtag_reset" : input initialp[N];
+        "ijtag_se" : input initialp[N];
         "ijtag_ce" : input initialp[N];
         "ijtag_ue" : input initialp[N];
         "ijtag_sel" : input initialp[N];
@@ -40,6 +36,7 @@ waveform core
         "backward" := input[0ns:S];
         "ijtag_tck" := input[0ns:S];
         "ijtag_reset" := input[0ns:S];
+        "ijtag_se" := input[0ns:S];
         "ijtag_ce" := input[0ns:S];
         "ijtag_ue" := input[0ns:S];
         "ijtag_sel" := input[0ns:S];
@@ -53,22 +50,22 @@ waveform core
     pattern Chain_Scan_test("ijtag_tck", "ijtag_reset", "ijtag_ce", "ijtag_se", 
         "ijtag_ue", "ijtag_sel", "ijtag_si", "ijtag_so")
         { Pattern 0 Vector 0 TesterCycle 0 }
-        vector(+, gen_tp1) := [ 0 0 0 0 0 0 0 0 0 X X X X X ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 1 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 1 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 1 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 1 0 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 0 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 0 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 0 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 1 0 0 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 1 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 1 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 1 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 1 0 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 0 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 0 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 0 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 X 0 0 0 0 ];
+        vector(+, gen_tp1) := [ 0 0 0 0 0 0 0 0 0 0 X X X X X ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 0 0 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 0 0 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 0 0 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 0 0 ];
     end
 end

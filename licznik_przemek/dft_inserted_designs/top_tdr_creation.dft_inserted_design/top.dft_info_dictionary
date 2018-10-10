@@ -1,0 +1,7 @@
+set tessent_dft_info_dict {
+  version 1
+  dft_signals {}
+  modules_with_chains {}
+  non_scannable_instance_list top_tdr_creation_tessent_tdr_tdr_inst
+  edt_instances {}
+}

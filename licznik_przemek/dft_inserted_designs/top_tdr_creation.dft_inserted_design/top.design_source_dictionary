@@ -1,0 +1,58 @@
+set design_source_dictionary \
+{
+  read1 {
+    format {
+      "verilog_2001"
+    }
+    work_library {
+      "work"
+    }
+    files {
+      "../../../../data/clock_divider.v"
+      "../../../../data/debouncer.v"
+      "../../../../data/7_digit_converter.v"
+      "../../../../data/bintobcd.v"
+      "../../../../data/segment_selector.v"
+      "../../../../data/counter.v"
+      "./modified_rtl_files/top.v"
+    }
+    libraries {
+    }
+    extensions {
+    }
+    defines {
+    }
+    incdirs {
+      "../../.."
+    }
+    options {
+    }
+  }
+  read2 {
+    format {
+      "verilog_2001"
+    }
+    work_library {
+      "work"
+    }
+    files {
+      "../../instruments/top_tdr_creation_ijtag.instrument/top_tdr_creation_tessent_tdr_tdr.v"
+      "../../instruments/top_tdr_creation_ijtag.instrument/top_tdr_creation_tessent_data_mux_w3.v"
+    }
+    libraries {
+    }
+    extensions {
+    }
+    defines {
+    }
+    incdirs {
+      "../../.."
+    }
+    options {
+      "-no_overwrite"
+    }
+  }
+  logical_design_library_list {work}
+  default_logical_design_library {work}
+}
+

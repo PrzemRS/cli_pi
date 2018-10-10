@@ -1,0 +1,23 @@
+//-----------------------------------------------------
+//  File created by: Tessent Shell
+//          Version: 2018.4-snapshot_2018.10.04_03.00
+//       Created on: Thu Oct  4 04:27:24 PDT 2018
+//-----------------------------------------------------
+
+
+TsdbInfo(top,tdr_creation) {
+  tessent_tool_version : 2018.4-snapshot_2018.10.04_03.00;
+  tessent_meta_version : 10;
+  version : 2;
+  creation_date : Thu Oct 04 11:27:24 GMT 2018;
+  creation_user : pszymans;
+  creation_step : process_dft_specification;
+  level : sub_block;
+  icl_extraction_needed : On;
+  library_name : work;
+  gate_extension : vg;
+  interface_has_external_dependencies : 0;
+  OpenedTsdbDirectories {
+    /wv/pszymans_nb/tdr.tshell/results.64/tsdb_outdir;
+  }
+}

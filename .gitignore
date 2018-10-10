@@ -2,3 +2,9 @@
 *.pyc
 .vscode
 __pycache__
+.qsys_edit/
+db/
+incremental_db/
+*.bak
+*/output_files/*
+!*.sof

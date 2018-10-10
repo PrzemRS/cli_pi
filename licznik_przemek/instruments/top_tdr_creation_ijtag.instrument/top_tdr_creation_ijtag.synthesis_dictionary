@@ -1,0 +1,47 @@
+#--------------------------------------------------------
+#
+#  Copyright Mentor Graphics Corporation
+#  All Rights Reserved
+#
+#  THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY
+#  INFORMATION WHICH IS THE PROPERTY OF MENTOR GRAPHICS
+#  CORPORATION OR ITS LICENSORS AND IS SUBJECT
+#  TO LICENSE TERMS.
+#
+#--------------------------------------------------------
+#  File created by: Tessent Shell
+#          Version: 2018.4-snapshot_2018.10.04_03.00
+#       Created on: Thu Oct  4 04:27:23 PDT 2018
+#--------------------------------------------------------
+
+set synthesis_dictionary {
+  design_source_dictionary {
+    read1 {
+      format verilog_2001
+      work_library work
+      files {
+        ./top_tdr_creation_tessent_tdr_tdr.v ./top_tdr_creation_tessent_data_mux_w3.v
+      }
+    }
+  }
+  designs_dictionary {
+    top_tdr_creation_tessent_tdr_tdr {
+      boundary_optimization off
+      size_only_prefix_list tessent_persistent_cell_
+      output_files {
+        top_tdr_creation_tessent_tdr_tdr.vg {
+          module_name_list top_tdr_creation_tessent_tdr_tdr
+        }
+      }
+    }
+    top_tdr_creation_tessent_data_mux_w3 {
+      boundary_optimization off
+      size_only_prefix_list tessent_persistent_cell_
+      output_files {
+        top_tdr_creation_tessent_data_mux_w3.vg {
+          module_name_list top_tdr_creation_tessent_data_mux_w3
+        }
+      }
+    }
+  }
+}

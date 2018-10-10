@@ -1,0 +1,15 @@
+//-----------------------------------------------------
+//  File created by: Tessent Shell
+//          Version: 2018.4-snapshot_2018.10.04_03.00
+//       Created on: Thu Oct  4 04:27:24 PDT 2018
+//-----------------------------------------------------
+
+
+Core(top) {
+  DesignInfo {
+    design_id : tdr_creation;
+    design_level : sub_block;
+    ChildBlockModules {
+    }
+  }
+}

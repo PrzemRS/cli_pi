@@ -1,0 +1,52 @@
+#--------------------------------------------------------
+#
+#  Copyright Mentor Graphics Corporation
+#  All Rights Reserved
+#
+#  THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY
+#  INFORMATION WHICH IS THE PROPERTY OF MENTOR GRAPHICS
+#  CORPORATION OR ITS LICENSORS AND IS SUBJECT
+#  TO LICENSE TERMS.
+#
+#--------------------------------------------------------
+#  File created by: Tessent Shell
+#          Version: 2018.4-snapshot_2018.10.04_03.00
+#       Created on: Thu Oct  4 04:27:23 PDT 2018
+#--------------------------------------------------------
+
+set ijtag_sdc_dictionary {
+  created_ports {
+    tck0 {
+      name ijtag_tck
+      tck_port ijtag_tck
+    }
+    reset0 {
+      name ijtag_reset
+      tck_port ijtag_tck
+    }
+    capture_en0 {
+      name ijtag_ce
+      tck_port ijtag_tck
+    }
+    shift_en0 {
+      name ijtag_se
+      tck_port ijtag_tck
+    }
+    update_en0 {
+      name ijtag_ue
+      tck_port ijtag_tck
+    }
+    select0 {
+      name ijtag_sel
+      tck_port ijtag_tck
+    }
+    scan_in0 {
+      name ijtag_si
+      tck_port ijtag_tck
+    }
+    scan_out0 {
+      name ijtag_so
+      tck_port ijtag_tck
+    }
+  }
+}

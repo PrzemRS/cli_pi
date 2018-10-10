@@ -1,0 +1,26 @@
+//-----------------------------------------------------
+//  File created by: Tessent Shell
+//          Version: 2018.4-snapshot_2018.10.04_03.00
+//       Created on: Thu Oct  4 04:27:24 PDT 2018
+//-----------------------------------------------------
+
+
+DftSpecification(top,tdr_creation) {
+  IjtagNetwork {
+    HostScanInterface(my_interface) {
+      Tdr(tdr) {
+        DataInPorts {
+          connection(3:0) : counter_inst/led[3:0];
+          port_naming : led[3:0];
+        }
+        DataOutPorts {
+          connection(3) : counter_inst/fi_en;
+          connection(2) : counter_inst/nRst;
+          connection(1) : counter_inst/backward;
+          connection(0) : counter_inst/cnt;
+          port_naming : mux_sel, fi_en, nRst, backward, cnt;
+        }
+      }
+    }
+  }
+}

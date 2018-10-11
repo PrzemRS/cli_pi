@@ -4,7 +4,7 @@ try:
 except:
 	print("Error: Could not import RPi.GPIO. Some functions will not be available.")
 	gpio_error = True
-
+isGpioSet = False
 def setup(PIOMAP_list):
 	if globals()['gpio_error']:
 		return 1
@@ -20,6 +20,7 @@ def setup(PIOMAP_list):
 		except:
 			print("Error: GPIO pin ", port['GPIO'], " cannot be set.",sep='')
 			return 1
+	isGpioSet = True
 	return 0
 
 def set_pin_value(gpio, value):
@@ -51,5 +52,6 @@ def get_pin_value(gpio):
 def exit():
 	if globals()['gpio_error']:
 		return 1
-	GPIO.cleanup()
+	if isGpioSet == True:
+		GPIO.cleanup()
 	return 0

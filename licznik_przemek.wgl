@@ -51,21 +51,21 @@ waveform core
         "ijtag_ue", "ijtag_sel", "ijtag_si", "ijtag_so")
         { Pattern 0 Vector 0 TesterCycle 0 }
         vector(+, gen_tp1) := [ 0 0 0 0 0 0 0 0 0 0 X X X X X ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 1 0 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 1 0 0 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 1 0 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 1 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 1 0 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 0 1 ];
-        vector(+, gen_tp1) := [ 1 1 0 0 0 0 0 0 0 0 X 0 0 0 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 1 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 1 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 1 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 1 0 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 0 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 0 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 0 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 1 0 0 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 1 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 1 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 1 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 1 0 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 0 1 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 0 1 0 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 0 0 1 ];
+        vector(+, gen_tp1) := [ 1 1 1 0 0 0 0 0 0 0 X 0 0 0 0 ];
     end
 end

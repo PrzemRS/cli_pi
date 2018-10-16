@@ -1,0 +1,40 @@
+{ WGL format test patterns produced by Tessent Shell 2018.3-snapshot_2018.07.09_03.01 }
+{ Filename       : ./tsdb_outdir/patterns/core_rtl.patterns_manufacturing/ICLNetwork.wgl }
+{ Timefile       : DEFAULT }
+{ Idstamp        : 2018.3-snapshot_2018.07.09_03.01:9779:6099:0:0000 }
+{ Date           : Mon Jul  9 14:09:46 2018 }
+
+{ Begin_Verify_Section }
+{   format            = WGL }
+{   serial_flag       = OFF }
+{   test_set_type     = IJTAG_TEST }
+{   pad_value         = X }
+{   one_setup         = ON }
+{   no_initialization = OFF }
+{ End_Verify_Section }
+waveform core
+    signal
+        "clk" : input initialp[P];
+        "nRst" : input initialp[P];
+        "backward" : input initialp[P];
+        "led"[3] : output;
+        "led"[2] : output;
+        "led"[1] : output;
+        "led"[0] : output;
+    end
+    timeplate gen_tp1 period 100ns
+        "clk" := input[0ns:D, 25ns:S, 75ns:D];
+        "nRst" := input[0ns:S];
+        "backward" := input[0ns:S];
+        "led"[3] := output[0ns:X, 24ns:Q, 25ns:X];
+        "led"[2] := output[0ns:X, 24ns:Q, 25ns:X];
+        "led"[1] := output[0ns:X, 24ns:Q, 25ns:X];
+        "led"[0] := output[0ns:X, 24ns:Q, 25ns:X];
+    end
+    pattern Chain_Scan_test("ijtag_tck", "ijtag_reset", "ijtag_ce", "ijtag_se", 
+        "ijtag_ue", "ijtag_sel", "ijtag_si", "ijtag_so")
+        { Pattern 0 Vector 0 TesterCycle 0 }
+        vector(+, gen_tp1) := [ 0 0 0 X X X X ];
+        vector(+, gen_tp1) := [ 1 1 1 1 1 1 1 ];
+    end
+end
